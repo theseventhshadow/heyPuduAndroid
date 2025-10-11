@@ -1,5 +1,4 @@
-
-package com.heypudu.heypudu.greeting // <-- Fíjate que el paquete es correcto
+package com.heypudu.heypudu.features.greeting // <-- Fíjate que el paquete es correcto
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -14,6 +13,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.heypudu.heypudu.ui.theme.HeyPudúTheme
+import androidx.compose.material3.MaterialTheme
+
 
 /**
  * La pantalla de saludo. Ahora acepta una función lambda `onProfileClick`.
@@ -26,7 +27,8 @@ fun GreetingScreen(onProfileClick: () -> Unit) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("¡Bienvenido a HeyPudú!")
+        Text("¡Bienvenido a HeyPudú!",
+            style = MaterialTheme.typography.bodyLarge)
         Spacer(modifier = Modifier.height(16.dp))
         Button(onClick = onProfileClick) { // <- Usamos la función que recibimos
             Text("Ir a mi Perfil")

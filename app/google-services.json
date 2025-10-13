@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "156453694593",
+    "project_id": "heypudu-30ebf",
+    "storage_bucket": "heypudu-30ebf.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:156453694593:android:6c34cad1877c6e4b2f7180",
+        "android_client_info": {
+          "package_name": "com.heypudu.heypudu"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC9cTnLXvKtRNGPlJrHNNLLxet5spoccu0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,4 +1,4 @@
-package com.heypudu.heypudu.features.greeting // <-- Fíjate que el paquete es correcto
+package com.heypudu.heypudu.features.onboarding.ui // <-- Fíjate que el paquete es correcto
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

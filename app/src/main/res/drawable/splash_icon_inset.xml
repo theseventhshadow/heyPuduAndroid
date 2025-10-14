@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Este es un drawable de tipo "inset". Su única función es
+aplicar un relleno (padding) alrededor de otro drawable.
+-->
+<inset
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@drawable/ic_pudu_logo"
+    android:inset="30%">
+</inset>

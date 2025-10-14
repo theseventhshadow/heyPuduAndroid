@@ -2,7 +2,6 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    id("com.google.gms.google-services") version "4.4.3" apply false
 }
 
 android {
@@ -60,5 +59,6 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:2.8.0-beta05")
     implementation(platform("com.google.firebase:firebase-bom:34.3.0"))
     implementation("com.google.firebase:firebase-analytics")
+    implementation("androidx.core:core-splashscreen:1.0.1")
 
 }

@@ -13,20 +13,12 @@ import com.heypudu.heypudu.features.profile.ProfileRoutes
 import com.heypudu.heypudu.features.profile.profileGraph
 import com.heypudu.heypudu.features.splash.ui.SplashScreen
 
-/**
- * Ahora las rutas principales son los GRAFOS de cada funcionalidad.
- */
+
 object AppRoutes {
     const val ONBOARDING_GRAPH = OnboardingRoutes.GRAPH
     const val PROFILE_GRAPH = ProfileRoutes.GRAPH
-    // Si tuvieras autenticación, sería: const val AUTH_GRAPH = "auth_graph"
-
 }
 
-/**
- * El NavHost principal ahora está súper limpio.
- * Solo conoce los grafos, no las pantallas individuales.
- */
 @Composable
 fun AppNavigation() {
     var showSplashScreen by remember { mutableStateOf(true) }

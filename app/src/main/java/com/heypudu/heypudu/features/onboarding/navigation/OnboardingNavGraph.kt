@@ -23,7 +23,7 @@ fun NavGraphBuilder.onboardingGraph(navController: NavHostController) {
         // 2. Definimos las pantallas DENTRO de este grafo
         composable(route = OnboardingRoutes.GREETING) {
             GreetingScreen(
-                onProfileClick = {
+                onContinueClick = {
                     // Navega a una ruta FUERA de este grafo (al grafo de perfil)
                     navController.navigate(AppRoutes.PROFILE_GRAPH)
                 }

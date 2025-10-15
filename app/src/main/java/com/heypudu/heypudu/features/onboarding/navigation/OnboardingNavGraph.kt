@@ -8,26 +8,30 @@ import com.heypudu.heypudu.features.onboarding.ui.GreetingScreen
 import com.heypudu.heypudu.navigation.AppRoutes
 import com.heypudu.heypudu.features.onboarding.ui.CreateProfileScreen
 
-// Definimos las rutas específicas de este flujo
+/*
+ --- RUTAS DEL ONBOARDING ---
+*/
 object OnboardingRoutes {
-    const val GRAPH = "onboarding_graph" // Ruta para todo este sub-grafo
+    const val GRAPH = "onboarding_graph"
     const val GREETING = "greeting"
     const val CREATE_PROFILE = "create_profile"
 
 }
 
-// Esta es una "extension function" que añade rutas a un NavGraphBuilder
+/*
+ --- GRÁFICO DEL ONBOARDING ---
+*/
 fun NavGraphBuilder.onboardingGraph(navController: NavHostController) {
-    // 1. Creamos un grafo anidado
+    // Creacion de un grafo anidado para el onboarding
     navigation(
-        startDestination = OnboardingRoutes.GREETING, // Pantalla de inicio de ESTE grafo
+        startDestination = OnboardingRoutes.GREETING,
         route = OnboardingRoutes.GRAPH
     ) {
-        // 2. Definimos las pantallas DENTRO de este grafo
+        // Definicion de las pantallas del onboarding
         composable(route = OnboardingRoutes.GREETING) {
             GreetingScreen(
                 onContinueClick = {
-                    // Navega a una ruta FUERA de este grafo (al grafo de perfil)
+                    // Navega a la pantalla de perfil al hacer clic en el botón
                     navController.navigate(AppRoutes.PROFILE_GRAPH)
                 },
                 onProfileCreated = {

@@ -2,7 +2,6 @@ package com.heypudu.heypudu.features.onboarding.ui
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -11,7 +10,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,30 +17,30 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.heypudu.heypudu.R // Asegúrate de tener ic_pudu_logo en res/drawable
+import com.heypudu.heypudu.R
 import com.heypudu.heypudu.ui.theme.HeyPudúTheme
 
+/*
+ --- PANTALLA DE CREACIÓN DE PERFIL ---
+*/
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateProfileScreen(
     onProfileCreated: () -> Unit
 ) {
     // --- ESTADOS PARA GUARDAR LOS DATOS DEL USUARIO ---
-    // Usamos remember para que Compose guarde el estado entre recomposiciones.
+
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var fullName by remember { mutableStateOf("") }
     var bio by remember { mutableStateOf("") }
 
-    // Usaremos el fondo degradado de tu GreetingScreen para mantener la consistencia.
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -59,10 +57,12 @@ fun CreateProfileScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState()), // Permite hacer scroll si el contenido no cabe
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // --- TÍTULO DE LA PANTALLA ---
+            /*
+             --- TÍTULO DE LA PANTALLA ---
+             */
             Text(
                 text = "Crea tu Perfil",
                 fontSize = 28.sp,
@@ -71,7 +71,9 @@ fun CreateProfileScreen(
                 modifier = Modifier.padding(top = 32.dp, bottom = 24.dp)
             )
 
-            // --- SELECCIÓN DE FOTO DE PERFIL ---
+            /*
+             --- SELECCIÓN DE FOTO DE PERFIL ---
+             */
             Box(
                 modifier = Modifier
                     .size(140.dp)
@@ -81,7 +83,9 @@ fun CreateProfileScreen(
                     .clickable { /* TODO: Lógica para abrir la galería */ },
                 contentAlignment = Alignment.Center
             ) {
-                // Aquí podrías mostrar la imagen seleccionada. Por ahora, un icono.
+                /*
+                 Aquí podrías mostrar la imagen seleccionada. Por ahora, un icono.
+                */
                 Icon(
                     painter = painterResource(id = R.drawable.ic_add_photo),
                     contentDescription = "Añadir foto de perfil",
@@ -92,7 +96,9 @@ fun CreateProfileScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // --- CAMPO DE TEXTO PARA NOMBRE DE USUARIO ---
+            /*
+             --- CAMPO DE TEXTO PARA NOMBRE DE USUARIO ---
+            */
             OutlinedTextField(
                 value = username,
                 onValueChange = { username = it },
@@ -114,7 +120,9 @@ fun CreateProfileScreen(
                 visualTransformation = PasswordVisualTransformation()
             )
 
-            // --- CAMPO DE TEXTO PARA NOMBRE COMPLETO ---
+            /*
+             --- CAMPO DE TEXTO PARA NOMBRE COMPLETO ---
+            */
             OutlinedTextField(
                 value = fullName,
                 onValueChange = { fullName = it },
@@ -126,7 +134,9 @@ fun CreateProfileScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // --- CAMPO DE TEXTO PARA BIOGRAFÍA ---
+            /*
+             --- CAMPO DE TEXTO PARA BIOGRAFÍA ---
+            */
             OutlinedTextField(
                 value = bio,
                 onValueChange = { bio = it },
@@ -138,7 +148,9 @@ fun CreateProfileScreen(
             )
 
 
-            // --- BOTÓN PARA GUARDAR EL PERFIL ---
+            /*
+             --- BOTÓN PARA GUARDAR EL PERFIL ---
+            */
             Button(
                 onClick = onProfileCreated,
                 shape = RoundedCornerShape(16.dp),
@@ -161,7 +173,9 @@ fun CreateProfileScreen(
 }
 
 
-// --- VISTA PREVIA PARA DISEÑAR EN AISLADO ---
+/*
+ --- VISTA PREVIA PARA DISEÑAR EN AISLADO ---
+*/
 @Preview(showBackground = true)
 @Composable
 private fun CreateProfileScreenPreview() {

@@ -7,7 +7,6 @@ import androidx.navigation.navigation
 import com.heypudu.heypudu.features.profile.ui.EditProfileScreen
 import com.heypudu.heypudu.features.profile.ui.ProfileScreen
 
-// Rutas específicas para el perfil
 object ProfileRoutes {
     const val GRAPH = "profile_graph"
     const val VIEW = "profile_view"
@@ -27,7 +26,7 @@ fun NavGraphBuilder.profileGraph(navController: NavHostController) {
         }
 
         composable(route = ProfileRoutes.EDIT) {
-            EditProfileScreen( // <- Una futura pantalla de edición
+            EditProfileScreen(
                 onSave = { navController.popBackStack() }
             )
         }

@@ -37,6 +37,10 @@ import com.heypudu.heypudu.R
 import com.heypudu.heypudu.ui.theme.HeyPudúTheme
 
 
+/*
+    -- Funcion de la pantalla de bienvenida --
+ */
+
 @Composable
 fun GreetingScreen(
     onContinueClick: () -> Unit,
@@ -47,12 +51,14 @@ fun GreetingScreen(
         initialValue = 0f,
         targetValue = 1500f,
         animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 6000, delayMillis = 1000), // Duración y retraso de la animación
-            repeatMode = RepeatMode.Reverse // Va y vuelve suavemente
+            animation = tween(durationMillis = 4000, delayMillis = 1000),
+            repeatMode = RepeatMode.Reverse
         ),
         label = "gradient_offset"
     )
-    // 1. Un 'Box' para el fondo degradado
+    /*
+       -- Box para el fondo del botón --
+     */
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -66,19 +72,21 @@ fun GreetingScreen(
                     endY = 1500f + offset
                 )
             ),
-                contentAlignment = androidx . compose . ui . Alignment.Center
     ) {
-        // 2. Un 'Column' para organizar los elementos verticalmente
+        /*
+         -- Un 'Column' para organizar los elementos verticalmente --
+         */
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(32.dp), // Añadimos padding general
+                .padding(32.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.weight(1f))
 
-            // 3. El Logo
-            // Asegúrate de tener un 'ic_pudu_logo.xml' o 'ic_pudu_logo.png' en res/drawable
+            /*
+                -- El Logo
+             */
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally
             ){
@@ -86,39 +94,45 @@ fun GreetingScreen(
                     painter = painterResource(id = R.drawable.ic_pudu_logo),
                     contentDescription = "Logo de HeyPudú",
                     modifier = Modifier
-                        .size(180.dp) // Tamaño del logo
-                        .clip(RoundedCornerShape(32.dp)), // Bordes redondeados para el logo
+                        .size(180.dp)
+                        .clip(RoundedCornerShape(32.dp)),
                     contentScale = ContentScale.Crop
                 )
 
-                Spacer(modifier = Modifier.height(32.dp)) // Espacio entre logo y texto
+                Spacer(modifier = Modifier.height(32.dp))
 
-                // 4. El Título
+                /*
+                    -- El Título
+                 */
                 Text(
                     text = "¡Bienvenido a heyPudú!",
-                    fontSize = 28.sp, // Tamaño de fuente más grande
-                    fontWeight = FontWeight.Bold, // Letra en negrita
-                    color = Color.Black// Un color oscuro, no negro puro
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // 5. El Subtítulo o texto descriptivo
+                /*
+                 -- El Subtítulo o texto descriptivo
+                 */
                 Text(
                     text = "Escucha. Hazte Escuchar...",
                     fontSize = 16.sp,
-                    textAlign = TextAlign.Center, // Texto centrado
-                    color = Color.White // Color más suave
+                    textAlign = TextAlign.Center,
+                    color = Color.White
                 )
 
-                Spacer(modifier = Modifier.height(48.dp)) // Más espacio antes del botón
+                Spacer(modifier = Modifier.height(48.dp))
 
-                // 6. El Botón con estilo
+                /*
+                    -- El Botón con estilo
+                 */
                 Button(
                     onClick = onProfileCreated,
-                    shape = RoundedCornerShape(16.dp), // Botón con bordes redondeados
+                    shape = RoundedCornerShape(16.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFE91E63) // Color rosa distintivo del botón
+                        containerColor = Color(0xFFE91E63)
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
@@ -167,8 +181,8 @@ fun GreetingScreen(
 
 }
 
-/**
- * La vista previa actualizada para reflejar el nuevo diseño.
+/*
+    -- La vista previa actualizada para reflejar el nuevo diseño.
  */
 @Preview(showBackground = true, widthDp = 360, heightDp = 780)
 @Composable

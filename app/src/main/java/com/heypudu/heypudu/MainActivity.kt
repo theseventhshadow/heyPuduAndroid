@@ -14,8 +14,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
-        // Simplemente instala la splash screen, sin condiciones de espera.
-        // Esto mostrará la nativa (rosa) muy brevemente y luego le pasará el control a Compose.
         installSplashScreen()
 
         setContent {

@@ -6,11 +6,14 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import com.heypudu.heypudu.features.onboarding.ui.GreetingScreen
 import com.heypudu.heypudu.navigation.AppRoutes
+import com.heypudu.heypudu.features.onboarding.ui.CreateProfileScreen
 
 // Definimos las rutas específicas de este flujo
 object OnboardingRoutes {
     const val GRAPH = "onboarding_graph" // Ruta para todo este sub-grafo
     const val GREETING = "greeting"
+    const val CREATE_PROFILE = "create_profile"
+
 }
 
 // Esta es una "extension function" que añade rutas a un NavGraphBuilder
@@ -26,11 +29,23 @@ fun NavGraphBuilder.onboardingGraph(navController: NavHostController) {
                 onContinueClick = {
                     // Navega a una ruta FUERA de este grafo (al grafo de perfil)
                     navController.navigate(AppRoutes.PROFILE_GRAPH)
+                },
+                onProfileCreated = {
+                    navController.navigate(OnboardingRoutes.CREATE_PROFILE)
                 }
             )
         }
 
-        // Si tuvieras una pantalla de "Tutorial", la añadirías aquí
-        // composable(route = "tutorial") { ... }
+        composable(OnboardingRoutes.CREATE_PROFILE) {
+            CreateProfileScreen(
+                onProfileCreated = {
+                    navController.navigate("main_graph") {
+                        popUpTo(navController.graph.startDestinationId) {
+                            inclusive = true
+                        }
+                    }
+                }
+            )
+        }
     }
 }

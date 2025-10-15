@@ -39,12 +39,13 @@ import com.heypudu.heypudu.ui.theme.HeyPudúTheme
 
 @Composable
 fun GreetingScreen(
-    onContinueClick: () -> Unit
+    onContinueClick: () -> Unit,
+    onProfileCreated: () -> Unit
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "gradient_transition")
     val offset by infiniteTransition.animateFloat(
-        initialValue = 0f,          // Comienza desde el principio
-        targetValue = 1500f,        // Un valor grande para asegurar que el degradado se desplace completamente.
+        initialValue = 0f,
+        targetValue = 1500f,
         animationSpec = infiniteRepeatable(
             animation = tween(durationMillis = 6000, delayMillis = 1000), // Duración y retraso de la animación
             repeatMode = RepeatMode.Reverse // Va y vuelve suavemente
@@ -58,8 +59,8 @@ fun GreetingScreen(
             .background(
                 Brush.verticalGradient(
                     colors = listOf(
-                        Color(0xFFFA76A6), // Un rosa muy claro
-                        Color(0xFF33E7B2)  // Blanco
+                        Color(0xFFFA76A6),
+                        Color(0xFF33E7B2)
                     ),
                     startY = 0f + offset,
                     endY = 1500f + offset
@@ -114,7 +115,7 @@ fun GreetingScreen(
 
                 // 6. El Botón con estilo
                 Button(
-                    onClick = onContinueClick,
+                    onClick = onProfileCreated,
                     shape = RoundedCornerShape(16.dp), // Botón con bordes redondeados
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFFE91E63) // Color rosa distintivo del botón
@@ -156,7 +157,7 @@ fun GreetingScreen(
 
 
             Text(
-                text= "Designed by a bunch of pudús",
+                text= "Created by a bunch of pudús",
                 fontSize = 12.sp,
                 fontWeight = FontWeight.W900,
                 color = Color.Gray
@@ -173,6 +174,9 @@ fun GreetingScreen(
 @Composable
 private fun GreetingScreenPreview() {
     HeyPudúTheme {
-        GreetingScreen(onContinueClick = {})
+        GreetingScreen(
+            onProfileCreated = {},
+            onContinueClick = {}
+        )
     }
 }

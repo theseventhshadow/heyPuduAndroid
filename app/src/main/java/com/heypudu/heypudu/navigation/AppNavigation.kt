@@ -1,57 +1,28 @@
 package com.heypudu.heypudu.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.navigation.compose.NavHost // <-- Importación correcta
-import androidx.navigation.compose.composable
+import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
-import com.heypudu.heypudu.features.greeting.GreetingScreen
-import com.heypudu.heypudu.features.profile.Profile
+import com.heypudu.heypudu.features.onboarding.navigation.OnboardingRoutes
+import com.heypudu.heypudu.features.onboarding.navigation.onboardingGraph
+import com.heypudu.heypudu.features.mainscreen.navigation.mainNavGraph
 
 
-/**
- * Objeto para definir las rutas de la app de forma segura.
- * Usar esto en lugar de strings ("profile") previene errores de tipeo.
- */
 object AppRoutes {
-    const val GREETING = "greeting"
-    const val PROFILE = "profile"
-
-    const val MESSAGES = "messages"
+    const val MAIN_GRAPH = "main_graph"
+    const val PROFILE_GRAPH = "profile_graph"
 }
 
-/**
- * Esta es la función Composable que construye el grafo de navegación.
- */
-@Preview
 @Composable
 fun AppNavigation() {
-    val navController = rememberNavController()
 
-    NavHost(
-        navController = navController,
-        startDestination = AppRoutes.GREETING // Define la pantalla de inicio
-    ) {
-        // Define la pantalla "greeting"
-        composable(route = AppRoutes.GREETING) {
-            // Le pasamos la lógica para navegar cuando se haga clic
-            GreetingScreen(
-                onProfileClick = {
-                    navController.navigate(AppRoutes.PROFILE)
-                }
-            )
+        val navController = rememberNavController()
+        NavHost(
+            navController = navController,
+            startDestination = OnboardingRoutes.GRAPH
+        ) {
+            onboardingGraph(navController)
+            mainNavGraph(navController)
         }
-
-        // Define la pantalla "profile"
-        composable(route = AppRoutes.PROFILE) {
-            // Como ProfileScreen aún no existe, creamos un placeholder aquí mismo.
-            // Esta es una pantalla temporal muy simple.
-            Profile(
-                onProfileClick = {
-                    navController.navigate(AppRoutes.GREETING)
-                }
-            )
-        }
-    }
 }
 

@@ -8,12 +8,10 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
+import com.heypudu.heypudu.data.UserRepository
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
-import java.io.File
 
 data class CreateProfileUiState(
     val username: String = "",
@@ -31,7 +29,10 @@ sealed class NavigationEvent {
     object NavigateToEmailVerification : NavigationEvent()
 }
 
-class CreateProfileViewModel : ViewModel() {
+class CreateProfileViewModel(
+    private val repo: UserRepository = UserRepository(),
+    private val auth: FirebaseAuth = FirebaseAuth.getInstance()
+) : ViewModel() {
 
     var uiState by mutableStateOf(CreateProfileUiState())
         private set
@@ -43,9 +44,6 @@ class CreateProfileViewModel : ViewModel() {
 
     private val _navigationEvent = MutableSharedFlow<NavigationEvent>()
     val navigationEvent = _navigationEvent.asSharedFlow()
-
-    private val auth: FirebaseAuth = FirebaseAuth.getInstance()
-    private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
 
     fun onUsernameChange(newUsername: String) {
         val maxLength = 12
@@ -82,33 +80,33 @@ class CreateProfileViewModel : ViewModel() {
             try {
                 uiState = uiState.copy(isLoading = true)
 
-                // Cerrar sesión antes de crear un nuevo usuario
-                auth.signOut()
+                // Cerrar sesión antes de crear un nuevo usuario (si así lo desea la app)
+                repo.signOut()
 
-                // 1. Crear usuario en Firebase Auth con el CORREO REAL
-                val authResult = auth.createUserWithEmailAndPassword(uiState.email, uiState.password).await()
-
+                // 1. Crear usuario en Firebase Auth
+                val authResult = repo.createUser(uiState.email, uiState.password)
                 val firebaseUser = authResult.user
                     ?: throw IllegalStateException("El usuario de Firebase es nulo después de la creación.")
 
                 // 2. Enviar el correo de verificación
-                firebaseUser.sendEmailVerification().await()
+                repo.sendEmailVerification()
 
                 var photoUrl: String? = null
                 // Subir imagen a Firebase Storage si la URI no es nula y es válida
-                println("[DEBUG] Usuario autenticado: ${firebaseUser.uid}")
-                println("[DEBUG] URI: $imageUri, scheme: ${imageUri?.scheme}")
+                println("[DEBUG] Usuario autenticado: ${'$'}{firebaseUser.uid}")
+                println("[DEBUG] URI: $imageUri, scheme: ${'$'}{imageUri?.scheme}")
                 if (imageUri != null) {
                     try {
-                        photoUrl = uploadProfileImage(imageUri, firebaseUser.uid)
-                        println("[DEBUG] URL de imagen subida: $photoUrl")
+                        photoUrl = repo.uploadProfileImage(imageUri, firebaseUser.uid)
+                        println("[DEBUG] URL de imagen subida: ${'$'}photoUrl")
                     } catch (e: Exception) {
-                        println("[ERROR] Error al subir la imagen: ${e.message}")
+                        println("[ERROR] Error al subir la imagen: ${'$'}{e.message}")
                         photoUrl = ""
                     }
                 } else {
                     println("[ERROR] No se seleccionó imagen de perfil.")
                 }
+
                 // 3. Guardar los datos del perfil en Firestore
                 val userProfileData = hashMapOf(
                     "username" to uiState.username,
@@ -119,16 +117,14 @@ class CreateProfileViewModel : ViewModel() {
                 )
 
                 try {
-                    firestore.collection("users").document(firebaseUser.uid)
-                        .set(userProfileData)
-                        .await()
-                    println("[DEBUG] Usuario guardado en Firestore: ${firebaseUser.uid}")
+                    repo.saveUserProfile(firebaseUser.uid, userProfileData)
+                    println("[DEBUG] Usuario guardado en Firestore: ${'$'}{firebaseUser.uid}")
                 } catch (e: Exception) {
-                    println("[ERROR] Error al guardar usuario en Firestore: ${e.message}")
+                    println("[ERROR] Error al guardar usuario en Firestore: ${'$'}{e.message}")
                 }
 
                 uiState = uiState.copy(isLoading = false)
-                
+
                 // 4. Navegar a una pantalla que diga "Revisa tu correo para verificar la cuenta"
                 _navigationEvent.emit(NavigationEvent.NavigateToEmailVerification)
 
@@ -140,17 +136,43 @@ class CreateProfileViewModel : ViewModel() {
                     is com.google.firebase.auth.FirebaseAuthWeakPasswordException ->
                         "La contraseña es demasiado débil. Debe tener al menos 6 caracteres."
                     else ->
-                        "Ocurrió un error inesperado: ${e.message}"
+                        "Ocurrió un error inesperado: ${'$'}{e.message}"
                 }
                 uiState = uiState.copy(showDialog = true, dialogMessage = errorMessage)
             }
         }
     }
 
-    suspend fun uploadProfileImage(imageUri: Uri, userId: String): String? {
-        val storageRef = com.google.firebase.storage.FirebaseStorage.getInstance().reference
-        val imageRef = storageRef.child("profile_images/$userId.jpg")
-        imageRef.putFile(imageUri).await() // Subir la imagen primero
-        return imageRef.downloadUrl.await().toString()
+    fun checkAndUpdateEmailVerifiedStatus(onResult: (Boolean) -> Unit) {
+        val user = auth.currentUser
+        if (user != null) {
+            user.reload().addOnCompleteListener { reloadTask ->
+                if (reloadTask.isSuccessful) {
+                    if (user.isEmailVerified) {
+                        // Actualizar campo en Firestore
+                        viewModelScope.launch {
+                            try {
+                                repo.saveUserProfile(user.uid, mapOf("isEmailVerified" to true))
+                                println("[DEBUG] isEmailVerified actualizado en Firestore para ${user.uid}")
+                            } catch (e: Exception) {
+                                println("[ERROR] Error al actualizar isEmailVerified: ${e.message}")
+                            }
+                        }
+                        onResult(true)
+                    } else {
+                        uiState = uiState.copy(showDialog = true, dialogMessage = "Debes verificar tu correo antes de continuar.")
+                        onResult(false)
+                    }
+                } else {
+                    println("[ERROR] Error al recargar usuario: ${reloadTask.exception?.message}")
+                    uiState = uiState.copy(showDialog = true, dialogMessage = "Error al comprobar el estado del correo.")
+                    onResult(false)
+                }
+            }
+        } else {
+            println("[ERROR] No hay usuario autenticado para verificar email.")
+            uiState = uiState.copy(showDialog = true, dialogMessage = "No hay usuario autenticado.")
+            onResult(false)
+        }
     }
 }

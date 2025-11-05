@@ -45,7 +45,7 @@ import com.heypudu.heypudu.utils.LockScreenOrientation
 
 @Composable
 fun GreetingScreen(
-    onContinueClick: () -> Unit,
+    onLoginClick: () -> Unit,
     onProfileCreated: () -> Unit
 ) {
     LockScreenOrientation(android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
@@ -142,7 +142,7 @@ fun GreetingScreen(
                     Spacer(modifier = Modifier.height(10.dp))
 
                     Button(
-                        onClick = onContinueClick,
+                        onClick = onLoginClick,
                         shape = RoundedCornerShape(16.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor =  Color( 0xFFE91E63)
@@ -185,7 +185,7 @@ private fun GreetingScreenPreview() {
     HeyPudúTheme {
         GreetingScreen(
             onProfileCreated = {},
-            onContinueClick = {}
+            onLoginClick = {}
         )
     }
 }

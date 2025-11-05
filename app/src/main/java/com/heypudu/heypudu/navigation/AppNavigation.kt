@@ -5,12 +5,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.heypudu.heypudu.features.onboarding.navigation.OnboardingRoutes
 import com.heypudu.heypudu.features.onboarding.navigation.onboardingGraph
-import com.heypudu.heypudu.features.profile.ProfileRoutes
-import com.heypudu.heypudu.features.profile.profileGraph
+import com.heypudu.heypudu.features.mainscreen.navigation.mainNavGraph
 
 
 object AppRoutes {
-    const val PROFILE_GRAPH = ProfileRoutes.GRAPH
+    const val MAIN_GRAPH = "main_graph"
+    const val PROFILE_GRAPH = "profile_graph"
 }
 
 @Composable
@@ -22,7 +22,7 @@ fun AppNavigation() {
             startDestination = OnboardingRoutes.GRAPH
         ) {
             onboardingGraph(navController)
-            profileGraph(navController)
+            mainNavGraph(navController)
         }
 }
 

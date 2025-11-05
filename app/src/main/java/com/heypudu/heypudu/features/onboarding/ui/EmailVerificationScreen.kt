@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
@@ -30,9 +31,13 @@ import com.heypudu.heypudu.ui.theme.HeyPudúTheme
 import com.heypudu.heypudu.utils.LockScreenOrientation
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import com.heypudu.heypudu.features.onboarding.viewmodel.CreateProfileViewModel
 
 @Composable
-fun EmailVerificationScreen(onGoToMainApp: () -> Unit) {
+fun EmailVerificationScreen(
+    viewModel: CreateProfileViewModel,
+    onGoToMainApp: () -> Unit
+) {
     LockScreenOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
 
     AnimatedGradientBackground {
@@ -47,12 +52,9 @@ fun EmailVerificationScreen(onGoToMainApp: () -> Unit) {
                 painter = painterResource(id = com.heypudu.heypudu.R.drawable.typewriter),
                 contentDescription = "Email Sent Illustration",
                 contentScale = ContentScale.Fit,
-                modifier = Modifier
-                    .size(100.dp)
+                modifier = Modifier.size(100.dp)
             )
-            
             Spacer(modifier = Modifier.height(16.dp))
-
             Text(
                 text = "¡Registro casi completo!",
                 fontSize = 28.sp,
@@ -70,26 +72,34 @@ fun EmailVerificationScreen(onGoToMainApp: () -> Unit) {
             )
             Spacer(modifier = Modifier.height(32.dp))
             Button(
-                onClick = onGoToMainApp,
+                onClick = {
+                    viewModel.checkAndUpdateEmailVerifiedStatus { isVerified ->
+                        if (isVerified) {
+                            onGoToMainApp()
+                        }
+                        // Si no está verificado, el diálogo se muestra automáticamente
+                    }
+                },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFFE91E63)
                 ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 32.dp)
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 32.dp)
             ) {
                 Text("Entendido, ir a la app")
             }
-
             Spacer(modifier = Modifier.weight(1f))
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun EmailVerificationScreenPreview() {
-    HeyPudúTheme {
-        EmailVerificationScreen(onGoToMainApp = {})
+        if (viewModel.uiState.showDialog) {
+            AlertDialog(
+                onDismissRequest = { viewModel.dismissDialog() },
+                confirmButton = {
+                    Button(onClick = { viewModel.dismissDialog() }) {
+                        Text("OK")
+                    }
+                },
+                title = { Text("Verificación de correo") },
+                text = { Text(viewModel.uiState.dialogMessage) }
+            )
+        }
     }
 }

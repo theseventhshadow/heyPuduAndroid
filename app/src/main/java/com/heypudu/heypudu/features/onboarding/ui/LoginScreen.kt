@@ -33,7 +33,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.firebase.auth.FirebaseAuth
 import com.heypudu.heypudu.ui.components.AnimatedGradientBackground
-import com.heypudu.heypudu.ui.theme.HeyPudúTheme
 import com.heypudu.heypudu.utils.LockScreenOrientation
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import com.heypudu.heypudu.R
@@ -112,19 +111,25 @@ fun LoginScreen(navController: NavHostController) {
 
                 Button(
                     onClick = {
-                        if (email.isNotEmpty() && password.isNotEmpty()) {
+                        if (email.isEmpty() || password.isEmpty()) {
+                            errorMessage = "Por favor, completa todos los campos."
+                        } else {
                             isLoading = true
                             errorMessage = ""
                             auth.signInWithEmailAndPassword(email, password)
                                 .addOnCompleteListener { task ->
                                     isLoading = false
                                     if (task.isSuccessful) {
-                                        navController.navigate()
+                                        navController.navigate("main_graph") {
+                                            popUpTo("login") { inclusive = true }
+                                            launchSingleTop = true
+                                        }
                                     } else {
                                         errorMessage = task.exception?.localizedMessage ?: "Error al iniciar sesión"
                                     }
                                 }
-                        } },
+                        }
+                    },
                     enabled = !isLoading,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -141,26 +146,16 @@ fun LoginScreen(navController: NavHostController) {
                     )
                 }
 
-                if (errorMessage== "The supplied auth credential is incorrect, malformed or has expired.") {
+                if (errorMessage.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = "Credenciales incorrectas. Por favor, verifica tu correo y contraseña.",
-                        color = Color.Black,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }else if (errorMessage == "The email address is badly formatted.") {
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        text = "El formato del correo electrónico es incorrecto.",
-                        color = Color.Black,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                } else if (password.isEmpty() || email.isEmpty()){
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        text = "Por favor, completa todos los campos.",
+                        text = when (errorMessage) {
+                            "The supplied auth credential is incorrect, malformed or has expired." ->
+                                "Credenciales incorrectas. Por favor, verifica tu correo y contraseña."
+                            "The email address is badly formatted." ->
+                                "El formato del correo electrónico es incorrecto."
+                            else -> errorMessage
+                        },
                         color = Color.Black,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth()

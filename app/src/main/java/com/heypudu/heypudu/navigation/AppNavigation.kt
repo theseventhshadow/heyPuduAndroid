@@ -3,6 +3,7 @@ package com.heypudu.heypudu.navigation
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
+import com.google.firebase.auth.FirebaseAuth
 import com.heypudu.heypudu.features.onboarding.navigation.OnboardingRoutes
 import com.heypudu.heypudu.features.onboarding.navigation.onboardingGraph
 import com.heypudu.heypudu.features.mainscreen.navigation.mainNavGraph
@@ -15,14 +16,13 @@ object AppRoutes {
 
 @Composable
 fun AppNavigation() {
-
-        val navController = rememberNavController()
-        NavHost(
-            navController = navController,
-            startDestination = OnboardingRoutes.GRAPH
-        ) {
-            onboardingGraph(navController)
-            mainNavGraph(navController)
-        }
+    val navController = rememberNavController()
+    val isLoggedIn = FirebaseAuth.getInstance().currentUser != null
+    NavHost(
+        navController = navController,
+        startDestination = if (isLoggedIn) AppRoutes.MAIN_GRAPH else OnboardingRoutes.GRAPH
+    ) {
+        onboardingGraph(navController)
+        mainNavGraph(navController)
+    }
 }
-

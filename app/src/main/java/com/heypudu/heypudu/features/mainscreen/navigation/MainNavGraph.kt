@@ -17,7 +17,7 @@ fun NavGraphBuilder.mainNavGraph(navController: NavHostController) {
         route = AppRoutes.MAIN_GRAPH
     ) {
         composable(MainRoutes.MAIN) {
-            MainScreen()
+            MainScreen(navController)
         }
     }
 

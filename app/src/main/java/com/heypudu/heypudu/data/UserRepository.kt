@@ -35,6 +35,14 @@ class UserRepository(
         firestore.collection("users").document(userId).set(data).await()
     }
 
+    suspend fun updateUserProfileField(userId: String, field: String, value: Any): Unit = withContext(Dispatchers.IO) {
+        firestore.collection("users").document(userId).update(field, value).await()
+    }
+
+    suspend fun savePost(post: Post): Unit = withContext(Dispatchers.IO) {
+        firestore.collection("posts").add(post).await()
+    }
+
     fun signOut() {
         auth.signOut()
     }
@@ -42,3 +50,22 @@ class UserRepository(
     @Suppress("unused")
     fun getCurrentUserId(): String? = auth.currentUser?.uid
 }
+
+data class Post(
+    val authorId: String = "",
+    val authorUsername: String = "",
+    val authorPhotoUrl: String = "",
+    val publishedAt: Long = System.currentTimeMillis(),
+    val message: String = "",
+    val audioUrl: String = "",
+    val likes: List<String> = emptyList(),
+    val comments: List<Comment> = emptyList()
+)
+
+data class Comment(
+    val commentId: String = "",
+    val authorId: String = "",
+    val text: String = "",
+    val audioUrl: String = "",
+    val createdAt: Long = System.currentTimeMillis()
+)

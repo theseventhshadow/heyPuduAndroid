@@ -28,7 +28,7 @@ fun MainTopBar(
     onMusicClick: () -> Unit
 ) {
     TopAppBar(
-        colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White),
+        colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFFFA76A6)),
         title = {
             Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                 IconButton(onClick = onLogoClick) {
@@ -45,7 +45,7 @@ fun MainTopBar(
                 Icon(
                     imageVector = Icons.Filled.Menu,
                     contentDescription = "Menú",
-                    tint = Color(0xFF33E7B2)
+                    tint = Color.Black
                 )
             }
         },
@@ -54,7 +54,7 @@ fun MainTopBar(
                 Icon(
                     imageVector = Icons.Filled.MusicNote,
                     contentDescription = "Reproductor de música",
-                    tint = Color(0xFFFA76A6)
+                    tint = Color.Black
                 )
             }
         }

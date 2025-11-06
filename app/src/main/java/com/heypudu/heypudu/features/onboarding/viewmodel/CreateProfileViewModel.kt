@@ -149,10 +149,10 @@ class CreateProfileViewModel(
             user.reload().addOnCompleteListener { reloadTask ->
                 if (reloadTask.isSuccessful) {
                     if (user.isEmailVerified) {
-                        // Actualizar campo en Firestore
+                        // Actualizar solo el campo en Firestore
                         viewModelScope.launch {
                             try {
-                                repo.saveUserProfile(user.uid, mapOf("isEmailVerified" to true))
+                                repo.updateUserProfileField(user.uid, "isEmailVerified", true)
                                 println("[DEBUG] isEmailVerified actualizado en Firestore para ${user.uid}")
                             } catch (e: Exception) {
                                 println("[ERROR] Error al actualizar isEmailVerified: ${e.message}")

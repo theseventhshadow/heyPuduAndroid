@@ -27,16 +27,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 import com.google.firebase.auth.FirebaseAuth
+import com.heypudu.heypudu.R
 import com.heypudu.heypudu.ui.components.AnimatedGradientBackground
 import com.heypudu.heypudu.utils.LockScreenOrientation
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import com.heypudu.heypudu.R
-import androidx.navigation.NavHostController
 
 /*
     -- Funcion de la pantalla de login --
@@ -50,10 +49,11 @@ fun LoginScreen(navController: NavHostController) {
     var errorMessage by remember { mutableStateOf("") }
     val auth = FirebaseAuth.getInstance()
 
-    // Intercepta el botón atrás y navega a GreetingScreen
+    // Intercepta el botón atrás para navegar a la pantalla de bienvenida
     BackHandler {
         navController.navigate("greeting") {
             popUpTo("login") { inclusive = true }
+            launchSingleTop = true
         }
     }
 

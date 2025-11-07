@@ -100,7 +100,7 @@ class CreateProfileViewModel(
                         photoUrl = repo.uploadProfileImage(imageUri, firebaseUser.uid)
                         println("[DEBUG] URL de imagen subida: ${'$'}photoUrl")
                     } catch (e: Exception) {
-                        println("[ERROR] Error al subir la imagen: ${'$'}{e.message}")
+                        println("[ERROR] Error al subir la imagen: ${e.message}")
                         photoUrl = ""
                     }
                 } else {
@@ -118,9 +118,9 @@ class CreateProfileViewModel(
 
                 try {
                     repo.saveUserProfile(firebaseUser.uid, userProfileData)
-                    println("[DEBUG] Usuario guardado en Firestore: ${'$'}{firebaseUser.uid}")
+                    println("[DEBUG] Usuario guardado en Firestore: ${firebaseUser.uid}")
                 } catch (e: Exception) {
-                    println("[ERROR] Error al guardar usuario en Firestore: ${'$'}{e.message}")
+                    println("[ERROR] Error al guardar usuario en Firestore: ${e.message}")
                 }
 
                 uiState = uiState.copy(isLoading = false)

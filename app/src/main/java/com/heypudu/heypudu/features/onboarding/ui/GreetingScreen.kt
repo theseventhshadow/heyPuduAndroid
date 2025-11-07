@@ -1,5 +1,8 @@
 package com.heypudu.heypudu.features.onboarding.ui
 
+import android.Manifest
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -20,6 +23,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,6 +31,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -37,7 +42,8 @@ import com.heypudu.heypudu.R
 import com.heypudu.heypudu.ui.components.AnimatedGradientBackground
 import com.heypudu.heypudu.ui.theme.HeyPudúTheme
 import com.heypudu.heypudu.utils.LockScreenOrientation
-
+import androidx.core.content.ContextCompat
+import androidx.core.content.PermissionChecker
 
 /*
     -- Funcion de la pantalla de bienvenida --
@@ -174,6 +180,17 @@ fun GreetingScreen(
         }
     }
 
+    val context = LocalContext.current
+    val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+        if (!isGranted) {
+            // Aquí podrías mostrar un mensaje o manejar el caso de denegación
+        }
+    }
+    LaunchedEffect(Unit) {
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) != PermissionChecker.PERMISSION_GRANTED) {
+            permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+        }
+    }
 }
 
 /*

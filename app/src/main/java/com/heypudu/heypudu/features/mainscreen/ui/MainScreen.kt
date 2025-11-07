@@ -24,7 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.navigation.NavHostController
 import com.heypudu.heypudu.data.UserRepository
-import com.heypudu.heypudu.ui.components.CreatePostDialog
+import com.heypudu.heypudu.ui.components.CreatePostBottomSheet
 import com.heypudu.heypudu.ui.components.MainBottomPlayer
 import com.heypudu.heypudu.ui.components.MainDrawer
 import com.heypudu.heypudu.ui.components.MainTopBar
@@ -138,7 +138,7 @@ fun MainScreen(navController: NavHostController) {
                 )
             }
             if (showCreatePostDialog) {
-                CreatePostDialog(
+                CreatePostBottomSheet(
                     show = showCreatePostDialog,
                     onDismiss = { showCreatePostDialog = false },
                     onPost = { title, message, audioUri, authorUsername, authorPhotoUrl, publishedAt, dateString ->
@@ -153,7 +153,7 @@ fun MainScreen(navController: NavHostController) {
                             likes = emptyList(),
                             comments = emptyList()
                         )
-                        kotlinx.coroutines.GlobalScope.launch {
+                        coroutineScope.launch {
                             repo.savePost(post)
                         }
                     }

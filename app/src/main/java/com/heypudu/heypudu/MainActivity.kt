@@ -26,6 +26,10 @@ class MainActivity : ComponentActivity() {
                 ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), 1002)
             }
         }
+        // Solicitar permisos de grabación de audio
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.RECORD_AUDIO), 1003)
+        }
         FirebaseApp.initializeApp(this)
         WindowCompat.setDecorFitsSystemWindows(window, false)
 

@@ -2,7 +2,7 @@ package com.heypudu.heypudu.features.mainscreen.navigation
 
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
-import androidx.navigation.navigation
+import androidx.navigation.compose.navigation
 import androidx.navigation.compose.composable
 import com.heypudu.heypudu.navigation.AppRoutes
 import com.heypudu.heypudu.features.mainscreen.ui.MainScreen

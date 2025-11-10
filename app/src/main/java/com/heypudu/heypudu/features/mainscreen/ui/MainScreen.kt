@@ -15,6 +15,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -22,8 +24,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.heypudu.heypudu.data.UserRepository
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import com.heypudu.heypudu.features.mainscreen.viewmodel.MainScreenViewModel
 import com.heypudu.heypudu.ui.components.CreatePostBottomSheet
 import com.heypudu.heypudu.ui.components.MainBottomPlayer
 import com.heypudu.heypudu.ui.components.MainDrawer
@@ -31,6 +37,9 @@ import com.heypudu.heypudu.ui.components.MainTopBar
 import com.heypudu.heypudu.ui.components.PostCard
 import com.heypudu.heypudu.utils.LockScreenOrientation
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -39,14 +48,27 @@ fun MainScreen(navController: NavHostController) {
     LockScreenOrientation(android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val coroutineScope = rememberCoroutineScope()
-    val postsState = remember { mutableStateOf(listOf(
-        Triple("Angelo Millán", "05/11/2025", "¡Hola! Esta es mi primera publicación."),
-        Triple("María Pudu", "04/11/2025", "¡Bienvenidos a HeyPudú!"),
-        Triple("Juanito", "03/11/2025", "¿Alguien quiere escuchar música?")
-    )) }
-    val repo = UserRepository()
+    val viewModel: MainScreenViewModel = viewModel()
     var showSignOutDialog by remember { mutableStateOf(false) }
     var showCreatePostDialog by remember { mutableStateOf(false) }
+    val postsState by viewModel.posts.collectAsState()
+    var isRefreshing by remember { mutableStateOf(false) }
+
+    // Obtener publicaciones reales desde Firestore
+    LaunchedEffect(Unit) {
+        viewModel.repo.getPosts { posts ->
+            viewModel.setPosts(posts)
+        }
+    }
+
+    fun refreshPosts() {
+        isRefreshing = true
+        viewModel.repo.getPosts { posts ->
+            viewModel.setPosts(posts)
+            isRefreshing = false
+        }
+    }
+
     Surface(color = Color.White) {
         ModalNavigationDrawer(
             drawerState = drawerState,
@@ -80,11 +102,6 @@ fun MainScreen(navController: NavHostController) {
                             }
                         },
                         onLogoClick = {
-                            postsState.value = listOf(
-                                Triple("Angelo Millán", "06/11/2025", "¡Publicaciones recargadas!"),
-                                Triple("María Pudu", "06/11/2025", "¡Bienvenidos de nuevo a HeyPudú!"),
-                                Triple("Juanito", "06/11/2025", "¡Recarga exitosa!")
-                            )
                             navController.navigate("main_graph") {
                                 launchSingleTop = true
                             }
@@ -99,67 +116,86 @@ fun MainScreen(navController: NavHostController) {
                     )
                 }
             ) { innerPadding ->
-                Box(modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)) {
-                    LazyColumn(modifier = Modifier.fillMaxSize()) {
-                        items(postsState.value) { post ->
-                            PostCard(
-                                author = post.first,
-                                date = post.second,
-                                content = post.third
-                            )
-                        }
-                    }
-                }
-
-            }
-            if (showSignOutDialog) {
-                AlertDialog(
-                    onDismissRequest = { showSignOutDialog = false },
-                    title = { Text(text = "¿Seguro de cerrar sesion?") },
-                    confirmButton = {
-                        TextButton(onClick = {
-                            showSignOutDialog = false
-                            repo.signOut()
-                            navController.navigate("greeting") {
-                                popUpTo(0) { inclusive = true }
-                                launchSingleTop = true
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
+                ) {
+                    val swipeRefreshState = rememberSwipeRefreshState(isRefreshing)
+                    SwipeRefresh(
+                        state = swipeRefreshState,
+                        onRefresh = { refreshPosts() }
+                    ) {
+                        LazyColumn(modifier = Modifier.fillMaxSize()) {
+                            if (postsState.isEmpty()) {
+                                item {
+                                    Text(
+                                        text = "No hay publicaciones disponibles.",
+                                        color = Color.Gray,
+                                        modifier = Modifier.padding(32.dp)
+                                    )
+                                }
+                            } else {
+                                items(postsState) { post ->
+                                    PostCard(
+                                        author = post.authorUsername ?: "",
+                                        date = post.publishedAt?.let { SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(it)) } ?: "",
+                                        content = post.content ?: "",
+                                        audioUrl = post.audioUrl
+                                    )
+                                }
                             }
-                        }) {
-                            Text("Si")
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = { showSignOutDialog = false }) {
-                            Text("No")
                         }
                     }
-                )
-            }
-            if (showCreatePostDialog) {
-                CreatePostBottomSheet(
-                    show = showCreatePostDialog,
-                    onDismiss = { showCreatePostDialog = false },
-                    onPost = { title, message, audioUri, authorUsername, authorPhotoUrl, publishedAt, dateString ->
-                        val userId = repo.getCurrentUserId() ?: ""
-                        val post = com.heypudu.heypudu.data.Post(
-                            authorId = userId,
-                            authorUsername = authorUsername,
-                            authorPhotoUrl = authorPhotoUrl,
-                            publishedAt = publishedAt,
-                            message = message,
-                            audioUrl = audioUri?.toString() ?: "",
-                            likes = emptyList(),
-                            comments = emptyList()
-                        )
-                        coroutineScope.launch {
-                            repo.savePost(post)
+
+                }
+                if (showSignOutDialog) {
+                    AlertDialog(
+                        onDismissRequest = { showSignOutDialog = false },
+                        title = { Text(text = "¿Seguro de cerrar sesion?") },
+                        confirmButton = {
+                            TextButton(onClick = {
+                                showSignOutDialog = false
+                                viewModel.signOut()
+                                navController.navigate("greeting") {
+                                    popUpTo(0) { inclusive = true }
+                                    launchSingleTop = true
+                                }
+                            }) {
+                                Text("Si")
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { showSignOutDialog = false }) {
+                                Text("No")
+                            }
                         }
-                    }
-                )
+                    )
+                }
+                if (showCreatePostDialog) {
+                    CreatePostBottomSheet(
+                        show = showCreatePostDialog,
+                        onDismiss = { showCreatePostDialog = false },
+                        onPost = { title, message, audioUri, authorUsername, authorPhotoUrl, publishedAt, dateString ->
+                            val userId = viewModel.repo.getCurrentUserId() ?: ""
+                            val post = com.heypudu.heypudu.data.Post(
+                                authorId = userId,
+                                authorUsername = authorUsername,
+                                authorPhotoUrl = authorPhotoUrl,
+                                publishedAt = publishedAt,
+                                title = title,
+                                content = message,
+                                audioUrl = "",
+                                likes = emptyList(),
+                                comments = emptyList()
+                            )
+                            viewModel.createPost(post, audioUri) {
+                                showCreatePostDialog = false
+                            }
+                        }
+                    )
+                }
             }
         }
     }
-
 }

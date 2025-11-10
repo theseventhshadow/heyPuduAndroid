@@ -40,7 +40,18 @@ class UserRepository(
     }
 
     suspend fun savePost(post: Post): Unit = withContext(Dispatchers.IO) {
-        firestore.collection("posts").add(post).await()
+        try {
+            val result = firestore.collection("posts").add(post).await()
+            android.util.Log.d("UserRepository", "Post guardado correctamente con ID: ${result.id}")
+        } catch (e: Exception) {
+            android.util.Log.e("UserRepository", "Error al guardar post: ${e.message}")
+        }
+    }
+
+    suspend fun uploadPostAudio(audioUri: Uri, postId: String): String = withContext(Dispatchers.IO) {
+        val audioRef = storage.reference.child("post_audios/$postId.m4a")
+        audioRef.putFile(audioUri).await()
+        audioRef.downloadUrl.await().toString()
     }
 
     fun signOut() {
@@ -49,23 +60,47 @@ class UserRepository(
 
     @Suppress("unused")
     fun getCurrentUserId(): String? = auth.currentUser?.uid
+
+    fun getPosts(onResult: (List<Post>) -> Unit) {
+        firestore.collection("posts")
+            .orderBy("publishedAt", com.google.firebase.firestore.Query.Direction.DESCENDING)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null || snapshot == null) {
+                    android.util.Log.e("UserRepository", "Error al obtener posts: ${error?.message}")
+                    onResult(emptyList())
+                    return@addSnapshotListener
+                }
+                android.util.Log.d("UserRepository", "Documentos recibidos: ${snapshot.documents.size}")
+                val posts = snapshot.documents.mapNotNull {
+                    val post = it.toObject(Post::class.java)
+                    if (post == null) {
+                        android.util.Log.w("UserRepository", "Conversión fallida para documento: ${it.id}")
+                        android.util.Log.w("UserRepository", "Contenido bruto: ${it.data}")
+                    }
+                    post
+                }
+                android.util.Log.d("UserRepository", "Posts convertidos: ${posts.size}")
+                onResult(posts)
+            }
+    }
 }
 
 data class Post(
-    val authorId: String = "",
-    val authorUsername: String = "",
-    val authorPhotoUrl: String = "",
-    val publishedAt: Long = System.currentTimeMillis(),
-    val message: String = "",
-    val audioUrl: String = "",
-    val likes: List<String> = emptyList(),
-    val comments: List<Comment> = emptyList()
+    val authorId: String? = null,
+    val authorUsername: String? = null,
+    val authorPhotoUrl: String? = null,
+    val publishedAt: Long? = null,
+    val title: String? = null,
+    val content: String? = null,
+    val audioUrl: String? = null,
+    val likes: List<String>? = null,
+    val comments: List<Comment>? = null
 )
 
 data class Comment(
-    val commentId: String = "",
-    val authorId: String = "",
-    val text: String = "",
-    val audioUrl: String = "",
-    val createdAt: Long = System.currentTimeMillis()
+    val commentId: String? = null,
+    val authorId: String? = null,
+    val text: String? = null,
+    val audioUrl: String? = null,
+    val createdAt: Long? = null
 )

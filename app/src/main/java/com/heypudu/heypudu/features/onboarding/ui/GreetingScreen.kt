@@ -129,7 +129,10 @@ fun GreetingScreen(
                         -- El Botón con estilo
                      */
                     Button(
-                        onClick = onProfileCreated,
+                        onClick = {
+                            android.util.Log.d("GreetingScreen", "Botón Registrarse presionado")
+                            onProfileCreated()
+                        },
                         shape = RoundedCornerShape(16.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFFE91E63)
@@ -148,14 +151,17 @@ fun GreetingScreen(
                     Spacer(modifier = Modifier.height(10.dp))
 
                     Button(
-                        onClick = onLoginClick,
+                        onClick = {
+                            android.util.Log.d("GreetingScreen", "Botón Iniciar Sesión presionado")
+                            onLoginClick()
+                        },
                         shape = RoundedCornerShape(16.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor =  Color( 0xFFE91E63)
                         ),
-                            modifier = Modifier
-                                .height(50.dp)
-                                .fillMaxWidth()
+                        modifier = Modifier
+                            .height(50.dp)
+                            .fillMaxWidth()
                     ) {
                         Text(
                             text = "Iniciar Sesión",
@@ -183,7 +189,8 @@ fun GreetingScreen(
     val context = LocalContext.current
     val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
         if (!isGranted) {
-            // Aquí podrías mostrar un mensaje o manejar el caso de denegación
+            // Solo muestra un mensaje, no bloquea la UI
+            android.widget.Toast.makeText(context, "Permiso de grabación denegado. Algunas funciones pueden no estar disponibles.", android.widget.Toast.LENGTH_LONG).show()
         }
     }
     LaunchedEffect(Unit) {

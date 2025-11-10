@@ -68,6 +68,7 @@ fun CreatePostBottomSheet(
     var recorder: MediaRecorder? by remember { mutableStateOf(null) }
     val context = LocalContext.current
     var recordedFilePath by remember { mutableStateOf("") }
+    var recordingSeconds by remember { mutableStateOf(0) }
 
     fun startRecording() {
         val fileName = "audio_${System.currentTimeMillis()}.m4a"
@@ -113,6 +114,17 @@ fun CreatePostBottomSheet(
                 Manifest.permission.RECORD_AUDIO
             )
             showSettingsButton = !shouldShowRationale
+        }
+    }
+
+    // Actualiza el contador de grabación mientras isRecording es true
+    LaunchedEffect(isRecording) {
+        if (isRecording) {
+            recordingSeconds = 0
+            while (isRecording) {
+                kotlinx.coroutines.delay(1000)
+                recordingSeconds++
+            }
         }
     }
 
@@ -172,13 +184,15 @@ fun CreatePostBottomSheet(
                         Text(if (isRecording) "Detener grabación" else "Grabar audio", color = Color.White)
                     }
                 }
+                if (isRecording) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    val min = recordingSeconds / 60
+                    val sec = recordingSeconds % 60
+                    Text("Grabando: %02d:%02d".format(min, sec), fontSize = 14.sp, color = Color(0xFFE91E63))
+                }
                 if (audioUri != null) {
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text("Audio seleccionado: ${audioUri.toString()}", fontSize = 12.sp, color = Color(0xFF33E7B2))
-                }
-                if (recordedFilePath.isNotEmpty()) {
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text("Archivo grabado: ${recordedFilePath}", fontSize = 12.sp, color = Color(0xFF33E7B2))
+                    Text("Audio seleccionado", fontSize = 12.sp, color = Color(0xFF33E7B2))
                 }
                 if (permissionDenied) {
                     Spacer(modifier = Modifier.height(8.dp))

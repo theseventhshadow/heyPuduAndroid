@@ -120,9 +120,17 @@ fun LoginScreen(navController: NavHostController) {
                                 .addOnCompleteListener { task ->
                                     isLoading = false
                                     if (task.isSuccessful) {
-                                        navController.navigate("main_graph") {
-                                            popUpTo("login") { inclusive = true }
-                                            launchSingleTop = true
+                                        val user = auth.currentUser
+                                        if (user != null && user.isEmailVerified) {
+                                            navController.navigate("main_graph") {
+                                                popUpTo("login") { inclusive = true }
+                                                launchSingleTop = true
+                                            }
+                                        } else {
+                                            navController.navigate("email_verification") {
+                                                popUpTo("login") { inclusive = true }
+                                                launchSingleTop = true
+                                            }
                                         }
                                     } else {
                                         errorMessage = task.exception?.localizedMessage ?: "Error al iniciar sesión"

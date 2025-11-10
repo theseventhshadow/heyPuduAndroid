@@ -1,44 +1,39 @@
 package com.heypudu.heypudu
 
-import android.Manifest
-import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.core.app.ActivityCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
-import com.google.firebase.FirebaseApp
 import com.heypudu.heypudu.navigation.AppNavigation
 import com.heypudu.heypudu.ui.theme.HeyPudúTheme
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 
 class MainActivity : ComponentActivity() {
+    companion object {
+        var isReady: Boolean by mutableStateOf(false)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Solicitar permisos de lectura de imágenes en Android 13+
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_MEDIA_IMAGES), 1001)
-            }
-        } else {
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), 1002)
-            }
-        }
-        // Solicitar permisos de grabación de audio
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.RECORD_AUDIO), 1003)
-        }
-        FirebaseApp.initializeApp(this)
+        android.util.Log.d("MainActivity", "onCreate: INICIO")
+        val splashScreen = installSplashScreen()
+        android.util.Log.d("MainActivity", "SplashScreen instalado")
+        splashScreen.setKeepOnScreenCondition { !isReady }
+        android.util.Log.d("MainActivity", "SplashScreen condición configurada")
         WindowCompat.setDecorFitsSystemWindows(window, false)
-
-        installSplashScreen()
-
+        android.util.Log.d("MainActivity", "DecorFitsSystemWindows configurado")
         setContent {
             HeyPudúTheme {
                 AppNavigation()
+                androidx.compose.runtime.LaunchedEffect(Unit) {
+                    android.util.Log.d("MainActivity", "Compose listo, liberando SplashScreen")
+                    isReady = true
+                }
             }
         }
+        android.util.Log.d("MainActivity", "setContent ejecutado")
     }
 }

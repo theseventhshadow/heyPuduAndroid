@@ -35,12 +35,17 @@ fun NavGraphBuilder.onboardingGraph(navController: NavHostController) {
             GreetingScreen(
                 onLoginClick = {
                     navController.navigate(OnboardingRoutes.LOGIN) {
-                        popUpTo(OnboardingRoutes.GRAPH) { inclusive = true }
+                        popUpTo(OnboardingRoutes.GREETING) { inclusive = true }
+                        launchSingleTop = true
+                        restoreState = true
                     }
                 },
                 // Esto es para usuarios nuevos
                 onProfileCreated = {
-                    navController.navigate(OnboardingRoutes.CREATE_PROFILE)
+                    navController.navigate(OnboardingRoutes.CREATE_PROFILE) {
+                        launchSingleTop = true
+                        restoreState = true
+                    }
                 }
             )
         }

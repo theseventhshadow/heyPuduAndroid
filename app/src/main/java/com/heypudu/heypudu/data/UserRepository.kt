@@ -39,12 +39,14 @@ class UserRepository(
         firestore.collection("users").document(userId).update(field, value).await()
     }
 
-    suspend fun savePost(post: Post): Unit = withContext(Dispatchers.IO) {
-        try {
+    suspend fun savePost(post: Post): String? = withContext(Dispatchers.IO) {
+        return@withContext try {
             val result = firestore.collection("posts").add(post).await()
             android.util.Log.d("UserRepository", "Post guardado correctamente con ID: ${result.id}")
+            result.id
         } catch (e: Exception) {
             android.util.Log.e("UserRepository", "Error al guardar post: ${e.message}")
+            null
         }
     }
 
@@ -52,6 +54,34 @@ class UserRepository(
         val audioRef = storage.reference.child("post_audios/$postId.m4a")
         audioRef.putFile(audioUri).await()
         audioRef.downloadUrl.await().toString()
+    }
+
+    suspend fun incrementPlayCount(postId: String) = withContext(Dispatchers.IO) {
+        val postRef = firestore.collection("posts").document(postId)
+        firestore.runTransaction { transaction ->
+            val snapshot = transaction.get(postRef)
+            val currentCount = snapshot.getLong("playCount") ?: 0L
+            transaction.update(postRef, "playCount", currentCount + 1)
+        }.await()
+    }
+
+    suspend fun toggleLikePost(postId: String, userId: String, liked: Boolean): Boolean = withContext(Dispatchers.IO) {
+        val postRef = firestore.collection("posts").document(postId)
+        return@withContext try {
+            firestore.runTransaction { transaction ->
+                val snapshot = transaction.get(postRef)
+                val likes = snapshot.get("likes") as? List<String> ?: emptyList()
+                val updatedLikes = if (liked) {
+                    if (!likes.contains(userId)) likes + userId else likes
+                } else {
+                    likes.filter { it != userId }
+                }
+                transaction.update(postRef, "likes", updatedLikes)
+            }.await()
+            true
+        } catch (e: Exception) {
+            false
+        }
     }
 
     fun signOut() {
@@ -66,26 +96,43 @@ class UserRepository(
             .orderBy("publishedAt", com.google.firebase.firestore.Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null || snapshot == null) {
-                    android.util.Log.e("UserRepository", "Error al obtener posts: ${error?.message}")
+                    android.util.Log.e("UserRepository", "Error al obtener posts: "+error?.message)
                     onResult(emptyList())
                     return@addSnapshotListener
                 }
-                android.util.Log.d("UserRepository", "Documentos recibidos: ${snapshot.documents.size}")
+                android.util.Log.d("UserRepository", "Documentos recibidos: "+snapshot.documents.size)
                 val posts = snapshot.documents.mapNotNull {
                     val post = it.toObject(Post::class.java)
                     if (post == null) {
-                        android.util.Log.w("UserRepository", "Conversión fallida para documento: ${it.id}")
-                        android.util.Log.w("UserRepository", "Contenido bruto: ${it.data}")
+                        android.util.Log.w("UserRepository", "Conversión fallida para documento: "+it.id)
+                        android.util.Log.w("UserRepository", "Contenido bruto: "+it.data)
                     }
-                    post
+                    post?.copy(documentId = it.id)
                 }
-                android.util.Log.d("UserRepository", "Posts convertidos: ${posts.size}")
+                android.util.Log.d("UserRepository", "Posts convertidos: "+posts.size)
                 onResult(posts)
+            }
+    }
+
+    fun getPostsOnce(onResult: (List<Post>) -> Unit) {
+        firestore.collection("posts")
+            .orderBy("publishedAt", com.google.firebase.firestore.Query.Direction.DESCENDING)
+            .get()
+            .addOnSuccessListener { snapshot ->
+                val posts = snapshot.documents.mapNotNull {
+                    val post = it.toObject(Post::class.java)
+                    post?.copy(documentId = it.id)
+                }
+                onResult(posts)
+            }
+            .addOnFailureListener {
+                onResult(emptyList())
             }
     }
 }
 
 data class Post(
+    val documentId: String? = null,
     val authorId: String? = null,
     val authorUsername: String? = null,
     val authorPhotoUrl: String? = null,
@@ -94,7 +141,8 @@ data class Post(
     val content: String? = null,
     val audioUrl: String? = null,
     val likes: List<String>? = null,
-    val comments: List<Comment>? = null
+    val comments: List<Comment>? = null,
+    val playCount: Int? = null // contador de reproducciones
 )
 
 data class Comment(

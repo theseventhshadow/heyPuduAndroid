@@ -77,6 +77,7 @@ fun LoginScreen(navController: NavHostController) {
                         .clip(RoundedCornerShape(32.dp)),
                     contentScale = ContentScale.Crop
                 )
+                Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
                     text = "Iniciar Sesión",
@@ -85,6 +86,8 @@ fun LoginScreen(navController: NavHostController) {
                     color = Color.Black,
                     textAlign = TextAlign.Center
                 )
+
+                Spacer(modifier = Modifier.height(16.dp))
 
                 OutlinedTextField(
                     value = email,

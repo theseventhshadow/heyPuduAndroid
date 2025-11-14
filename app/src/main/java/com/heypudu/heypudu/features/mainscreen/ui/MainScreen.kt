@@ -5,6 +5,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -27,8 +31,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.google.accompanist.swiperefresh.SwipeRefresh
-import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.heypudu.heypudu.features.mainscreen.viewmodel.MainScreenViewModel
 import com.heypudu.heypudu.ui.components.CreatePostBottomSheet
 import com.heypudu.heypudu.ui.components.MainBottomPlayer
@@ -36,13 +38,11 @@ import com.heypudu.heypudu.ui.components.MainDrawer
 import com.heypudu.heypudu.ui.components.MainTopBar
 import com.heypudu.heypudu.ui.components.PostCard
 import com.heypudu.heypudu.utils.LockScreenOrientation
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 fun MainScreen(navController: NavHostController) {
     LockScreenOrientation(android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
@@ -53,19 +53,22 @@ fun MainScreen(navController: NavHostController) {
     var showCreatePostDialog by remember { mutableStateOf(false) }
     val postsState by viewModel.posts.collectAsState()
     var isRefreshing by remember { mutableStateOf(false) }
+    val pullRefreshState = rememberPullRefreshState(isRefreshing, onRefresh = {
+        isRefreshing = true
+        viewModel.repo.getPostsOnce { posts ->
+            viewModel.setPosts(posts)
+            // Añadir un pequeño delay para asegurar que la animación se vea
+            coroutineScope.launch {
+                delay(600)
+                isRefreshing = false
+            }
+        }
+    })
 
     // Obtener publicaciones reales desde Firestore
     LaunchedEffect(Unit) {
         viewModel.repo.getPosts { posts ->
             viewModel.setPosts(posts)
-        }
-    }
-
-    fun refreshPosts() {
-        isRefreshing = true
-        viewModel.repo.getPosts { posts ->
-            viewModel.setPosts(posts)
-            isRefreshing = false
         }
     }
 
@@ -120,34 +123,30 @@ fun MainScreen(navController: NavHostController) {
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(innerPadding)
+                        .pullRefresh(pullRefreshState)
                 ) {
-                    val swipeRefreshState = rememberSwipeRefreshState(isRefreshing)
-                    SwipeRefresh(
-                        state = swipeRefreshState,
-                        onRefresh = { refreshPosts() }
-                    ) {
-                        LazyColumn(modifier = Modifier.fillMaxSize()) {
-                            if (postsState.isEmpty()) {
-                                item {
-                                    Text(
-                                        text = "No hay publicaciones disponibles.",
-                                        color = Color.Gray,
-                                        modifier = Modifier.padding(32.dp)
-                                    )
-                                }
-                            } else {
-                                items(postsState) { post ->
-                                    PostCard(
-                                        author = post.authorUsername ?: "",
-                                        date = post.publishedAt?.let { SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(it)) } ?: "",
-                                        content = post.content ?: "",
-                                        audioUrl = post.audioUrl
-                                    )
-                                }
+                    LazyColumn(modifier = Modifier.fillMaxSize()) {
+                        if (postsState.isEmpty()) {
+                            item {
+                                Text(
+                                    text = "No hay publicaciones disponibles.",
+                                    color = Color.Gray,
+                                    modifier = Modifier.padding(32.dp)
+                                )
+                            }
+                        } else {
+                            items(postsState) { post ->
+                                PostCard(
+                                    post = post
+                                )
                             }
                         }
                     }
-
+                    PullRefreshIndicator(
+                        refreshing = isRefreshing,
+                        state = pullRefreshState,
+                        modifier = Modifier.align(androidx.compose.ui.Alignment.TopCenter)
+                    )
                 }
                 if (showSignOutDialog) {
                     AlertDialog(
@@ -177,19 +176,7 @@ fun MainScreen(navController: NavHostController) {
                         show = showCreatePostDialog,
                         onDismiss = { showCreatePostDialog = false },
                         onPost = { title, message, audioUri, authorUsername, authorPhotoUrl, publishedAt, dateString ->
-                            val userId = viewModel.repo.getCurrentUserId() ?: ""
-                            val post = com.heypudu.heypudu.data.Post(
-                                authorId = userId,
-                                authorUsername = authorUsername,
-                                authorPhotoUrl = authorPhotoUrl,
-                                publishedAt = publishedAt,
-                                title = title,
-                                content = message,
-                                audioUrl = "",
-                                likes = emptyList(),
-                                comments = emptyList()
-                            )
-                            viewModel.createPost(post, audioUri) {
+                            viewModel.createPost(title, message, audioUri) {
                                 showCreatePostDialog = false
                             }
                         }

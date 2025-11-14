@@ -105,7 +105,7 @@ fun GreetingScreen(
                         -- El Título
                      */
                     Text(
-                        text = "¡Bienvenido a heyPudú!",
+                        text = "heyPudú!",
                         fontSize = 28.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.Black

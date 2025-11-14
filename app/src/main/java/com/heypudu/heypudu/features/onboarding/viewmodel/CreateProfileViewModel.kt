@@ -100,7 +100,7 @@ class CreateProfileViewModel(
                         photoUrl = repo.uploadProfileImage(imageUri, firebaseUser.uid)
                         println("[DEBUG] URL de imagen subida: ${'$'}photoUrl")
                     } catch (e: Exception) {
-                        println("[ERROR] Error al subir la imagen: ${'$'}{e.message}")
+                        println("[ERROR] Error al subir la imagen: ${e.message}")
                         photoUrl = ""
                     }
                 } else {
@@ -118,9 +118,9 @@ class CreateProfileViewModel(
 
                 try {
                     repo.saveUserProfile(firebaseUser.uid, userProfileData)
-                    println("[DEBUG] Usuario guardado en Firestore: ${'$'}{firebaseUser.uid}")
+                    println("[DEBUG] Usuario guardado en Firestore: ${firebaseUser.uid}")
                 } catch (e: Exception) {
-                    println("[ERROR] Error al guardar usuario en Firestore: ${'$'}{e.message}")
+                    println("[ERROR] Error al guardar usuario en Firestore: ${e.message}")
                 }
 
                 uiState = uiState.copy(isLoading = false)
@@ -149,10 +149,10 @@ class CreateProfileViewModel(
             user.reload().addOnCompleteListener { reloadTask ->
                 if (reloadTask.isSuccessful) {
                     if (user.isEmailVerified) {
-                        // Actualizar campo en Firestore
+                        // Actualizar solo el campo en Firestore
                         viewModelScope.launch {
                             try {
-                                repo.saveUserProfile(user.uid, mapOf("isEmailVerified" to true))
+                                repo.updateUserProfileField(user.uid, "isEmailVerified", true)
                                 println("[DEBUG] isEmailVerified actualizado en Firestore para ${user.uid}")
                             } catch (e: Exception) {
                                 println("[ERROR] Error al actualizar isEmailVerified: ${e.message}")

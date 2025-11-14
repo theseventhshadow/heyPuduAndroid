@@ -1,26 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <!-- Tema principal de tu app -->
-    <style name="Theme.HeyPudú" parent="android:Theme.Material.Light.NoActionBar" />
-
-    <!-- TEMA DE LA SPLASH SCREEN -->
-    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
-
-        <!-- 1. El color de fondo de la splash screen nativa. -->
-        <item name="windowSplashScreenBackground">@color/ic_launcher_background</item>
-
-        <!-- 2. ¡ESTA ES LA LÍNEA CLAVE! -->
-        <!-- Le dice al sistema que use el drawable del primer plano de tu ícono. -->
-        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_icon_inset </item>
-
-        <!-- Opcional: Define la duración de la animación del ícono (en milisegundos). -->
-        <!-- <item name="windowSplashScreenAnimationDuration">1000</item> -->
-
-        <!-- 3. El tema al que se transiciona DESPUÉS de la splash. -->
-        <!-- Debe ser el tema principal de tu app. -->
-        <item name="postSplashScreenTheme">@style/Theme.HeyPudú</item>
-
-    </style>
+    <!-- Tema principal de tu app (Material Components, para compatibilidad con Compose Material3) -->
+    <style name="Theme.HeyPudú" parent="Theme.MaterialComponents.DayNight" />
 
 </resources>

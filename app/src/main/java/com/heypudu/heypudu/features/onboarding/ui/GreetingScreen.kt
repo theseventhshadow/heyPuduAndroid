@@ -1,5 +1,8 @@
 package com.heypudu.heypudu.features.onboarding.ui
 
+import android.Manifest
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -20,6 +23,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,6 +31,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -37,7 +42,8 @@ import com.heypudu.heypudu.R
 import com.heypudu.heypudu.ui.components.AnimatedGradientBackground
 import com.heypudu.heypudu.ui.theme.HeyPudúTheme
 import com.heypudu.heypudu.utils.LockScreenOrientation
-
+import androidx.core.content.ContextCompat
+import androidx.core.content.PermissionChecker
 
 /*
     -- Funcion de la pantalla de bienvenida --
@@ -99,7 +105,7 @@ fun GreetingScreen(
                         -- El Título
                      */
                     Text(
-                        text = "¡Bienvenido a heyPudú!",
+                        text = "heyPudú!",
                         fontSize = 28.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.Black
@@ -123,7 +129,10 @@ fun GreetingScreen(
                         -- El Botón con estilo
                      */
                     Button(
-                        onClick = onProfileCreated,
+                        onClick = {
+                            android.util.Log.d("GreetingScreen", "Botón Registrarse presionado")
+                            onProfileCreated()
+                        },
                         shape = RoundedCornerShape(16.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFFE91E63)
@@ -142,14 +151,17 @@ fun GreetingScreen(
                     Spacer(modifier = Modifier.height(10.dp))
 
                     Button(
-                        onClick = onLoginClick,
+                        onClick = {
+                            android.util.Log.d("GreetingScreen", "Botón Iniciar Sesión presionado")
+                            onLoginClick()
+                        },
                         shape = RoundedCornerShape(16.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor =  Color( 0xFFE91E63)
                         ),
-                            modifier = Modifier
-                                .height(50.dp)
-                                .fillMaxWidth()
+                        modifier = Modifier
+                            .height(50.dp)
+                            .fillMaxWidth()
                     ) {
                         Text(
                             text = "Iniciar Sesión",
@@ -174,6 +186,18 @@ fun GreetingScreen(
         }
     }
 
+    val context = LocalContext.current
+    val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+        if (!isGranted) {
+            // Solo muestra un mensaje, no bloquea la UI
+            android.widget.Toast.makeText(context, "Permiso de grabación denegado. Algunas funciones pueden no estar disponibles.", android.widget.Toast.LENGTH_LONG).show()
+        }
+    }
+    LaunchedEffect(Unit) {
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) != PermissionChecker.PERMISSION_GRANTED) {
+            permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+        }
+    }
 }
 
 /*

@@ -1,4 +1,4 @@
-package com.heypudu.heypudu.features.profile
+package com.heypudu.heypudu.features.profile.navigation
 
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController

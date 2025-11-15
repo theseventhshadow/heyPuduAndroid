@@ -91,8 +91,13 @@ class MainScreenViewModel(
         }
     }
 
-    fun signOut() {
+    fun signOut(onSignOutComplete: (() -> Unit)? = null) {
         AudioPlayerController.stop()
         repo.signOut()
+        // Esperar a que el estado de autenticación se actualice
+        kotlinx.coroutines.GlobalScope.launch {
+            kotlinx.coroutines.delay(300)
+            onSignOutComplete?.invoke()
+        }
     }
 }

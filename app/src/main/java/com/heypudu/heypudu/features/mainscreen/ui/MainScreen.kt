@@ -86,8 +86,19 @@ fun MainScreen(navController: NavHostController) {
                                 launchSingleTop = true
                             }
                         } else if (route == "profile_graph") {
-                            navController.navigate("profile_graph") {
-                                launchSingleTop = true
+                            val auth = com.google.firebase.auth.FirebaseAuth.getInstance()
+                            val userId = auth.currentUser?.uid
+                            android.util.Log.d("MainScreen", "Navegando a perfil desde Drawer. userId=$userId")
+                            val currentRoute = navController.currentBackStackEntry?.destination?.route
+                            val targetRoute = "profile_graph/profile_view?userId=$userId"
+                            // Solo navega si no estamos ya en el perfil del usuario logueado
+                            if (!userId.isNullOrEmpty() && currentRoute != targetRoute) {
+                                navController.navigate(targetRoute) {
+                                    popUpTo("main_graph") { inclusive = false }
+                                    launchSingleTop = true
+                                }
+                            } else {
+                                android.util.Log.e("MainScreen", "userId es nulo o ya estamos en perfil, no se navega")
                             }
                         }
                     }
@@ -125,21 +136,19 @@ fun MainScreen(navController: NavHostController) {
                         .padding(innerPadding)
                         .pullRefresh(pullRefreshState)
                 ) {
-                    LazyColumn(modifier = Modifier.fillMaxSize()) {
-                        if (postsState.isEmpty()) {
-                            item {
-                                Text(
-                                    text = "No hay publicaciones disponibles.",
-                                    color = Color.Gray,
-                                    modifier = Modifier.padding(32.dp)
-                                )
-                            }
-                        } else {
-                            items(postsState) { post ->
-                                PostCard(
-                                    post = post
-                                )
-                            }
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(top = 8.dp)
+                            .pullRefresh(pullRefreshState)
+                    ) {
+                        items(postsState) { post ->
+                            PostCard(
+                                post = post,
+                                onNavigateToProfile = { authorId ->
+                                    navController.navigate("profile_view?userId=$authorId")
+                                }
+                            )
                         }
                     }
                     PullRefreshIndicator(
@@ -155,10 +164,11 @@ fun MainScreen(navController: NavHostController) {
                         confirmButton = {
                             TextButton(onClick = {
                                 showSignOutDialog = false
-                                viewModel.signOut()
-                                navController.navigate("greeting") {
-                                    popUpTo(0) { inclusive = true }
-                                    launchSingleTop = true
+                                viewModel.signOut {
+                                    navController.navigate("greeting") {
+                                        popUpTo(0) { inclusive = true }
+                                        launchSingleTop = true
+                                    }
                                 }
                             }) {
                                 Text("Si")

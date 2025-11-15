@@ -28,6 +28,8 @@ import kotlinx.coroutines.launch
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -50,6 +52,7 @@ fun ProfileScreen(
 
     LaunchedEffect(userId) {
         if (userId != null) {
+            // Corregido: solo una función loadUser
             viewModel.loadUser(userId)
         }
     }
@@ -123,6 +126,60 @@ fun ProfileScreen(
                     }
                 }
                 Spacer(modifier = Modifier.height(24.dp))
+                // Tabs para publicaciones y pudús
+                var selectedTabIndex by remember { mutableStateOf(0) }
+                val tabTitles = listOf("Mis publicaciones", "Pudús")
+                androidx.compose.material3.PrimaryTabRow(selectedTabIndex = selectedTabIndex) {
+                    tabTitles.forEachIndexed { index, title ->
+                        androidx.compose.material3.Tab(
+                            selected = selectedTabIndex == index,
+                            onClick = { selectedTabIndex = index },
+                            text = { Text(title) }
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                when (selectedTabIndex) {
+                    0 -> {
+                        // Publicaciones hechas por el usuario
+                        val userPosts by viewModel.userPosts.collectAsState()
+                        android.util.Log.d("ProfileScreen", "userPosts size: ${userPosts.size}")
+                        if (userPosts.isEmpty()) {
+                            Text("No tienes publicaciones", color = androidx.compose.ui.graphics.Color.Gray)
+                        } else {
+                            LazyColumn {
+                                items(userPosts) { post ->
+                                    com.heypudu.heypudu.ui.components.PostCard(
+                                        post = post,
+                                        onNavigateToProfile = { authorId ->
+                                            navController.navigate("profile_graph/profile_view?userId=$authorId")
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    1 -> {
+                        // Publicaciones que el usuario ha dado pudú
+                        val likedPosts by viewModel.likedPosts.collectAsState()
+                        android.util.Log.d("ProfileScreen", "likedPosts size: ${likedPosts.size}")
+                        if (likedPosts.isEmpty()) {
+                            Text("No has dado Pudús a ninguna publicación", color = androidx.compose.ui.graphics.Color.Gray)
+                        } else {
+                            LazyColumn {
+                                items(likedPosts) { post ->
+                                    com.heypudu.heypudu.ui.components.PostCard(
+                                        post = post,
+                                        onNavigateToProfile = { authorId ->
+                                            navController.navigate("profile_graph/profile_view?userId=$authorId")
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(8.dp))
                 Button(onClick = onGoToEdit) {
                     Text("Editar Perfil")
                 }

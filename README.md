@@ -1,5 +1,11 @@
 # heyPudú - Red Social de Audio
 
+## Autor del Proyecto
+Angelo Millan
+
+## Enlace de Jira del proyecto
+heypudu.atlassian.net
+
 ## Descripción General
 
 heyPudú es una aplicación Android moderna enfocada en el compartir de contenido de audio. Los usuarios pueden grabar, subir y compartir publicaciones de audio con una comunidad de oyentes. La aplicación ofrece autenticación de usuarios, gestión de perfiles, reproducción de audio e interacción social.

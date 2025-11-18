@@ -1,29 +1,24 @@
-package com.heypudu.heypudu.ui.components
-
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.ModalDrawerSheet
-import androidx.compose.material3.NavigationDrawerItem
-import androidx.compose.material3.NavigationDrawerItemDefaults
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.rememberAsyncImagePainter
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.heypudu.heypudu.ui.components.ProfileImage
 
 @Composable
 fun MainDrawer(
@@ -31,68 +26,219 @@ fun MainDrawer(
 ) {
     val auth = FirebaseAuth.getInstance()
     val user = auth.currentUser
-    var username = remember { mutableStateOf("") }
-    var photoUrl = remember { mutableStateOf("") }
+    var username by remember { mutableStateOf("") }
+    var photoUrl by remember { mutableStateOf("") }
 
     LaunchedEffect(user?.uid) {
         if (user != null) {
             FirebaseFirestore.getInstance().collection("users").document(user.uid)
                 .get()
                 .addOnSuccessListener { doc ->
-                    username.value = doc.getString("username") ?: ""
-                    photoUrl.value = doc.getString("photoUrl") ?: ""
+                    username = doc.getString("username") ?: ""
+                    photoUrl = doc.getString("photoUrl") ?: ""
                 }
         }
     }
 
-    ModalDrawerSheet {
-        // Header con foto y nombre
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
+    ModalDrawerSheet(
+        modifier = Modifier.width(280.dp),
+        drawerContainerColor = Color.White
+    ) {
+        // ...Header con gradiente y foto de usuario...
+        Box(
             modifier = Modifier
-                .padding(16.dp)
+                .fillMaxWidth()
+                .height(200.dp)
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            Color(0xFF6A1B9A),
+                            Color(0xFF4A148C)
+                        )
+                    )
+                ),
+            contentAlignment = Alignment.Center
         ) {
-            Image(
-                painter = if (photoUrl.value.isNotEmpty()) rememberAsyncImagePainter(photoUrl.value)
-                          else rememberAsyncImagePainter(model = "https://ui-avatars.com/api/?name=${username.value}&background=E91E63&color=fff&size=128"),
-                contentDescription = "Foto de perfil",
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape)
-            )
-            Spacer(modifier = Modifier.padding(start = 12.dp))
-            Text(
-                text = username.value,
-                fontSize = 18.sp
-            )
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.padding(16.dp)
+            ) {
+                val context = LocalContext.current
+                ProfileImage(
+                    context = context,
+                    userId = user?.uid,
+                    photoUrl = photoUrl,
+                    size = 80.dp,
+                    modifier = Modifier
+                        .background(
+                            color = Color.White.copy(alpha = 0.2f),
+                            shape = RoundedCornerShape(50)
+                        )
+                        .padding(4.dp)
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = username.ifBlank { "Usuario" },
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = user?.email ?: "",
+                    fontSize = 12.sp,
+                    color = Color.White.copy(alpha = 0.8f)
+                )
+            }
         }
+
         Spacer(modifier = Modifier.height(8.dp))
+
+        // Separador
+        HorizontalDivider(
+            color = Color.Gray.copy(alpha = 0.2f),
+            thickness = 1.dp,
+            modifier = Modifier.padding(vertical = 8.dp)
+        )
+
+        // Opción: Inicio
         NavigationDrawerItem(
-            label = { Text("Inicio") },
+            label = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Home,
+                        contentDescription = "Inicio",
+                        tint = Color.Black,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Text(
+                        "Inicio",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color.Black
+                    )
+                }
+            },
             selected = false,
             onClick = { onDestinationClick("main_graph") },
+            modifier = Modifier
+                .padding(horizontal = 12.dp, vertical = 4.dp)
+                .clip(RoundedCornerShape(8.dp)),
             colors = NavigationDrawerItemDefaults.colors(
-                selectedContainerColor = Color(0xFF33E7B2),
-                unselectedContainerColor = Color.White
+                selectedContainerColor = Color(0xFFE91E63).copy(alpha = 0.3f),
+                unselectedContainerColor = Color.Transparent,
+                selectedTextColor = Color.White,
+                unselectedTextColor = Color.White
             )
         )
+
+        // Opción: Perfil
         NavigationDrawerItem(
-            label = { Text("Perfil") },
+            label = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = "Perfil",
+                        tint = Color.Black,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Text(
+                        "Perfil",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color.Black
+                    )
+                }
+            },
             selected = false,
-            onClick = { onDestinationClick("profile_graph") },
+            onClick = {
+                val userId = auth.currentUser?.uid
+                if (!userId.isNullOrEmpty()) {
+                    onDestinationClick("profile_graph/profile_view?userId=$userId")
+                }
+            },
+            modifier = Modifier
+                .padding(horizontal = 12.dp, vertical = 4.dp)
+                .clip(RoundedCornerShape(8.dp)),
             colors = NavigationDrawerItemDefaults.colors(
-                selectedContainerColor = Color(0xFF33E7B2),
-                unselectedContainerColor = Color.White
+                selectedContainerColor = Color(0xFFE91E63).copy(alpha = 0.3f),
+                unselectedContainerColor = Color.Transparent,
+                selectedTextColor = Color.White,
+                unselectedTextColor = Color.White
             )
         )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Separador
+        HorizontalDivider(
+            color = Color.Gray.copy(alpha = 0.2f),
+            thickness = 1.dp,
+            modifier = Modifier.padding(vertical = 8.dp)
+        )
+
+        // Opción: Cerrar sesión
         NavigationDrawerItem(
-            label = { Text("Cerrar sesión") },
+            label = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.Logout,
+                        contentDescription = "Cerrar sesión",
+                        tint = Color(0xFFFF6B6B),
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Text(
+                        "Cerrar sesión",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color(0xFFFF6B6B)
+                    )
+                }
+            },
             selected = false,
             onClick = { onDestinationClick("logout") },
+            modifier = Modifier
+                .padding(horizontal = 12.dp, vertical = 4.dp)
+                .clip(RoundedCornerShape(8.dp)),
             colors = NavigationDrawerItemDefaults.colors(
-                selectedContainerColor = Color(0xFFFA76A6),
-                unselectedContainerColor = Color.White
+                selectedContainerColor = Color(0xFFFF6B6B).copy(alpha = 0.2f),
+                unselectedContainerColor = Color.Transparent,
+                selectedTextColor = Color(0xFFFF6B6B),
+                unselectedTextColor = Color(0xFFFF6B6B)
             )
         )
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        // Footer con información
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+                .background(
+                    color = Color(0xFF6A1B9A).copy(alpha = 0.2f),
+                    shape = RoundedCornerShape(8.dp)
+                )
+                .padding(12.dp)
+        ) {
+            Text(
+                text = "heyPudú v1.0",
+                fontSize = 12.sp,
+                color = Color.White.copy(alpha = 0.6f),
+                modifier = Modifier.align(Alignment.Center)
+            )
+        }
     }
 }

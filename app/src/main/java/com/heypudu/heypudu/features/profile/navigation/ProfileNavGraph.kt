@@ -28,8 +28,19 @@ fun NavGraphBuilder.profileGraph(navController: NavHostController) {
             ProfileScreen(
                 userId = userId,
                 navController = navController,
-                onGoToEdit = { navController.navigate(ProfileRoutes.EDIT) },
+                onGoToEdit = { navController.navigate(ProfileRoutes.EDIT + "?userId=$userId") },
                 onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(
+            route = ProfileRoutes.EDIT + "?userId={userId}",
+            arguments = listOf(navArgument("userId") { type = NavType.StringType; nullable = false })
+        ) { navBackStackEntry ->
+            val userId = navBackStackEntry.arguments?.getString("userId") ?: ""
+            EditProfileScreen(
+                userId = userId,
+                navController = navController
             )
         }
     }

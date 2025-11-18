@@ -53,7 +53,10 @@ dependencies {
     implementation(libs.material)
     implementation("androidx.compose.material:material-icons-extended:1.6.0")
     implementation("io.coil-kt:coil-compose:2.4.0")
-    implementation(libs.androidx.compose.foundation)
+    implementation(libs.androidx.compose.foundation) {
+        exclude(group = "com.intellij", module = "annotations")
+        exclude(group = "org.jetbrains", module = "annotations")
+    }
     implementation("androidx.compose.material:material")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -72,5 +75,17 @@ dependencies {
     implementation("androidx.core:core-splashscreen:1.0.1")
     implementation("androidx.navigation:navigation-compose:2.7.7")
     implementation("androidx.compose.material3:material3-window-size-class:1.4.0")
+    implementation("androidx.room:room-runtime:2.6.1") {
+        exclude(group = "com.intellij", module = "annotations")
+        exclude(group = "org.jetbrains", module = "annotations")
+    }
+    implementation("androidx.room:room-compiler:2.6.1") {
+        exclude(group = "com.intellij", module = "annotations")
+        exclude(group = "org.jetbrains", module = "annotations")
+    }
+    implementation("androidx.room:room-ktx:2.6.1") {
+        exclude(group = "com.intellij", module = "annotations")
+        exclude(group = "org.jetbrains", module = "annotations")
+    }
 
 }

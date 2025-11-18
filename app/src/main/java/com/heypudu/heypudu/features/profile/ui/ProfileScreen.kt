@@ -2,13 +2,13 @@ package com.heypudu.heypudu.features.profile.ui
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.sp
@@ -22,7 +22,7 @@ import com.heypudu.heypudu.ui.components.MainTopBar
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.ExperimentalMaterial3Api
-import com.heypudu.heypudu.ui.components.MainDrawer
+import MainDrawer
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.mutableStateOf
@@ -30,6 +30,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.ui.platform.LocalContext
+import com.heypudu.heypudu.ui.components.ProfileImage
+import com.heypudu.heypudu.ui.components.CreateReleaseBottomSheet
+
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -99,7 +103,11 @@ fun ProfileScreen(
             MainTopBar(
                 onMenuClick = { coroutineScope.launch { drawerState.open() } },
                 onLogoClick = {},
-                onMusicClick = {}
+                onMusicClick = {
+                    navController.navigate("releases_graph") {
+                        launchSingleTop = true
+                    }
+                }
             )
             Spacer(modifier = Modifier.height(8.dp))
             if (error != null) {
@@ -113,22 +121,46 @@ fun ProfileScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(16.dp)
                 ) {
-                    AsyncImage(
-                        model = photoUrl ?: "https://ui-avatars.com/api/?name=${username ?: "?"}&background=33E7B2&color=fff",
-                        contentDescription = "Foto de perfil",
-                        modifier = Modifier.size(72.dp).clip(CircleShape),
+                    val context = LocalContext.current
+                    ProfileImage(
+                        context = context,
+                        userId = userId,
+                        photoUrl = photoUrl,
+                        size = 72.dp
                     )
                     Spacer(modifier = Modifier.width(16.dp))
-                    Column {
-                        Text(text = username ?: "Usuario", fontSize = 22.sp, fontWeight = FontWeight.Bold)
-                        Text(text = email ?: "Sin correo", fontSize = 16.sp, color = androidx.compose.ui.graphics.Color.Gray)
-                        Text(text = "Posts: $postCount", fontSize = 15.sp, color = androidx.compose.ui.graphics.Color.DarkGray)
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(text = username ?: "Cargando nombre de usuario...", fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                        Text(text = email ?: "Cargando correo...", fontSize = 16.sp, color = androidx.compose.ui.graphics.Color.Gray)
+                        Text(text = "$postCount pudúPosts", fontSize = 15.sp, color = androidx.compose.ui.graphics.Color.DarkGray)
+                        val followerCount by viewModel.followerCount.collectAsState()
+                        Text(text = "$followerCount seguidores", fontSize = 14.sp, color = androidx.compose.ui.graphics.Color.Gray)
+                    }
+                    val isFollowing by viewModel.isFollowing.collectAsState()
+                    val currentUserId = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid
+                    if (userId != null && userId != currentUserId) {
+                        Button(
+                            onClick = { viewModel.toggleFollowUser(userId) },
+                            modifier = Modifier.height(40.dp)
+                        ) {
+                            Text(if (isFollowing) "Dejar de seguir" else "Seguir")
+                        }
+                    } else if (userId == currentUserId) {
+                        Button(
+                            onClick = { onGoToEdit() },
+                            modifier = Modifier.height(40.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = androidx.compose.ui.graphics.Color(0xFFE91E63)
+                            )
+                        ) {
+                            Text("Editar Perfil")
+                        }
                     }
                 }
                 Spacer(modifier = Modifier.height(24.dp))
-                // Tabs para publicaciones y pudús
+                // Tabs para publicaciones, pudús y lanzamientos
                 var selectedTabIndex by remember { mutableStateOf(0) }
-                val tabTitles = listOf("Mis publicaciones", "Pudús")
+                val tabTitles = listOf("Mis publicaciones", "Pudús", "Lanzamientos")
                 androidx.compose.material3.PrimaryTabRow(selectedTabIndex = selectedTabIndex) {
                     tabTitles.forEachIndexed { index, title ->
                         androidx.compose.material3.Tab(
@@ -178,15 +210,120 @@ fun ProfileScreen(
                             }
                         }
                     }
+                    2 -> {
+                        // Lanzamientos (álbumes y podcasts) del usuario
+                        val currentUserId = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid
+                        val isCurrentUser = userId == currentUserId
+
+                        var showCreateReleaseDialog by remember { mutableStateOf(false) }
+
+                        Column {
+                            if (isCurrentUser) {
+                                Button(
+                                    onClick = { showCreateReleaseDialog = true },
+                                    modifier = Modifier
+                                        .align(androidx.compose.ui.Alignment.CenterHorizontally)
+                                        .padding(bottom = 16.dp),
+                                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                                        containerColor = androidx.compose.ui.graphics.Color(0xFFE91E63)
+                                    )
+                                ) {
+                                    Text("+ Crear Lanzamiento")
+                                }
+                            }
+
+                            val userAlbums by viewModel.userAlbums.collectAsState()
+                            val userPodcasts by viewModel.userPodcasts.collectAsState()
+
+                            if (userAlbums.isEmpty() && userPodcasts.isEmpty()) {
+                                Text(
+                                    "No hay lanzamientos aún",
+                                    color = androidx.compose.ui.graphics.Color.Gray
+                                )
+                            } else {
+                                LazyColumn {
+                                    items(userAlbums.size) { index ->
+                                        val album = userAlbums[index]
+                                        androidx.compose.material3.Card(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(8.dp)
+                                        ) {
+                                            Row(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(12.dp),
+                                                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                                            ) {
+                                                Column(modifier = Modifier.weight(1f)) {
+                                                    Text(
+                                                        text = "📀 ${album.title}",
+                                                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                                                    )
+                                                    Text(
+                                                        text = album.description,
+                                                        fontSize = 12.sp,
+                                                        color = androidx.compose.ui.graphics.Color.Gray
+                                                    )
+                                                    Text(
+                                                        text = "Género: ${album.genre}",
+                                                        fontSize = 11.sp
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+                                    items(userPodcasts.size) { index ->
+                                        val podcast = userPodcasts[index]
+                                        androidx.compose.material3.Card(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(8.dp)
+                                        ) {
+                                            Row(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(12.dp),
+                                                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                                            ) {
+                                                Column(modifier = Modifier.weight(1f)) {
+                                                    Text(
+                                                        text = "🎙️ ${podcast.title}",
+                                                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                                                    )
+                                                    Text(
+                                                        text = podcast.description,
+                                                        fontSize = 12.sp,
+                                                        color = androidx.compose.ui.graphics.Color.Gray
+                                                    )
+                                                    Text(
+                                                        text = "Categoría: ${podcast.category}",
+                                                        fontSize = 11.sp
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        if (showCreateReleaseDialog) {
+                            CreateReleaseBottomSheet(
+                                onDismiss = { showCreateReleaseDialog = false },
+                                onCreateAlbum = { album ->
+                                    viewModel.createAlbum(album)
+                                    showCreateReleaseDialog = false
+                                },
+                                onCreatePodcast = { podcast ->
+                                    viewModel.createPodcast(podcast)
+                                    showCreateReleaseDialog = false
+                                }
+                            )
+                        }
+                    }
                 }
                 Spacer(modifier = Modifier.height(8.dp))
-                Button(onClick = onGoToEdit) {
-                    Text("Editar Perfil")
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                Button(onClick = onBack) {
-                    Text("Volver")
-                }
             }
         }
         if (showSignOutDialog) {
@@ -216,13 +353,4 @@ fun ProfileScreen(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun ProfileScreenPreview() {
-    ProfileScreen(
-        userId = null,
-        navController = androidx.navigation.compose.rememberNavController(),
-        onGoToEdit = {},
-        onBack = {}
-    )
-}
+//@Preview(showBackground = true)

@@ -43,12 +43,20 @@ import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import java.io.File
+import java.io.FileOutputStream
+import java.net.URL
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.res.painterResource
 
 @Composable
 fun PostCard(
     post: Post,
     modifier: Modifier = Modifier,
-    onNavigateToProfile: (String) -> Unit = {}
+    onNavigateToProfile: (String) -> Unit = {},
+    setCurrentPlayingPost: ((Post) -> Unit)? = null,
+    viewModel: com.heypudu.heypudu.features.mainscreen.viewmodel.MainScreenViewModel? = null // Nuevo parámetro opcional
 ) {
     val context = LocalContext.current
     val audioId = "${post.authorUsername}-${post.publishedAt}-${post.audioUrl}"
@@ -60,19 +68,62 @@ fun PostCard(
     var hasLiked by remember { mutableStateOf(post.likes?.contains(userId) == true) }
 
     fun togglePlayPause() {
-        if (post.audioUrl.isNullOrBlank()) return
+        if (post.audioUrl.isNullOrBlank()) {
+            android.util.Log.d("PostCard-Audio", "URL de audio vacía o nula")
+            return
+        }
+        val cacheDir = context.cacheDir
+        // Usar solo documentId o un identificador seguro para el nombre del archivo
+        val safeId = post.documentId ?: "audio_${post.authorUsername}_${post.publishedAt}"
+        val audioFileName = "audio_${safeId}.m4a"
+        val audioFile = File(cacheDir, audioFileName)
+        val localAudioPath = if (audioFile.exists()) audioFile.absolutePath else null
+        android.util.Log.d("PostCard-Audio", "Intentando reproducir: audioId=$audioId, localAudioPath=$localAudioPath, audioUrl=${post.audioUrl}")
         if (audioState.value.audioId == audioId && audioState.value.isPlaying) {
+            android.util.Log.d("PostCard-Audio", "Pausando audio actual")
             AudioPlayerController.pause()
         } else {
-            AudioPlayerController.play(context, audioId, post.audioUrl) {
-                // onCompletion: solo aquí se cuenta la reproducción
-                post.documentId?.let { docId: String ->
-                    coroutineScope.launch {
-                        com.heypudu.heypudu.data.UserRepository().incrementPlayCount(docId)
-                        playCount++ // Actualiza el contador local solo al finalizar
+            if (localAudioPath != null) {
+                android.util.Log.d("PostCard-Audio", "Reproduciendo desde archivo local: $localAudioPath")
+                AudioPlayerController.play(context, audioId, localAudioPath) {
+                    post.documentId?.let { docId: String ->
+                        coroutineScope.launch {
+                            com.heypudu.heypudu.data.UserRepository().incrementPlayCount(docId)
+                            playCount++
+                        }
+                    }
+                }
+            } else {
+                android.util.Log.d("PostCard-Audio", "Descargando audio desde: ${post.audioUrl}")
+                coroutineScope.launch {
+                    try {
+                        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                            val url = URL(post.audioUrl)
+                            url.openStream().use { input ->
+                                FileOutputStream(audioFile).use { output ->
+                                    input.copyTo(output)
+                                }
+                            }
+                        }
+                        android.util.Log.d("PostCard-Audio", "Descarga exitosa: ${audioFile.absolutePath}")
+                        AudioPlayerController.play(context, audioId, audioFile.absolutePath) {
+                            post.documentId?.let { docId: String ->
+                                coroutineScope.launch {
+                                    com.heypudu.heypudu.data.UserRepository().incrementPlayCount(docId)
+                                    playCount++
+                                }
+                            }
+                        }
+                    } catch (e: Exception) {
+                        android.util.Log.e("PostCard-Audio", "Error al descargar o reproducir: ${e.message}", e)
                     }
                 }
             }
+        }
+        if (setCurrentPlayingPost != null) {
+            setCurrentPlayingPost(post)
+        } else if (viewModel != null) {
+            viewModel.setCurrentPlayingPost(post)
         }
     }
 
@@ -86,6 +137,12 @@ fun PostCard(
         val minutes = TimeUnit.MILLISECONDS.toMinutes(ms.toLong())
         val seconds = TimeUnit.MILLISECONDS.toSeconds(ms.toLong()) - TimeUnit.MINUTES.toSeconds(minutes)
         return String.format(java.util.Locale.getDefault(), "%02d:%02d", minutes, seconds)
+    }
+
+    fun formatPublishedDate(publishedAt: Long?): String {
+        if (publishedAt == null) return "Fecha desconocida"
+        val formatter = java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", java.util.Locale.getDefault())
+        return formatter.format(java.util.Date(publishedAt))
     }
 
     Card(
@@ -116,6 +173,13 @@ fun PostCard(
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
+                // Fecha de publicación
+                Text(
+                    text = formatPublishedDate(post.publishedAt),
+                    fontSize = 12.sp,
+                    color = Color.Gray,
+                    maxLines = 1
+                )
                 // Mensaje
                 Text(
                     text = post.content ?: "",
@@ -135,8 +199,9 @@ fun PostCard(
             }
             Spacer(modifier = Modifier.width(12.dp))
             // Imagen de perfil circular clickable
+            val context = LocalContext.current
             AsyncImage(
-                model = post.authorPhotoUrl ?: "https://ui-avatars.com/api/?name=${post.authorUsername ?: "?"}&background=33E7B2&color=fff",
+                model = post.authorPhotoUrl ?: painterResource(id = com.heypudu.heypudu.R.drawable.ic_pudu_logo),
                 contentDescription = "Foto de perfil",
                 modifier = Modifier
                     .size(56.dp)
@@ -156,12 +221,12 @@ fun PostCard(
             ) {
                 Button(
                     onClick = { togglePlayPause() },
-                    modifier = Modifier.size(56.dp), // Tamaño estándar para botón de acción
+                    modifier = Modifier.size(56.dp),
                     colors = androidx.compose.material3.ButtonDefaults.buttonColors(
                         containerColor = Color(0xFFFA76A6),
                         contentColor = Color.Black
                     ),
-                    shape = RoundedCornerShape(6.dp), // Cuadrado con esquinas mínimas
+                    shape = RoundedCornerShape(6.dp),
                     border = androidx.compose.foundation.BorderStroke(2.dp, Color.Black)
                 ) {
                     Icon(
@@ -190,7 +255,7 @@ fun PostCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "${playCount} hey!",
+                text = "${playCount} heyPlays!",
                 fontSize = 15.sp,
                 color = Color(0xFF333333),
                 fontWeight = FontWeight.Medium
@@ -228,3 +293,38 @@ fun PostCard(
     }
 }
 
+@Composable
+fun rememberProfileImagePainter(profileUrl: String?, authorId: String): Painter {
+    val context = LocalContext.current
+    var localPath by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(profileUrl) {
+        if (!profileUrl.isNullOrBlank() && profileUrl.startsWith("http")) {
+            val cacheDir = context.cacheDir
+            val file = File(cacheDir, "profile_$authorId.jpg")
+            if (!file.exists()) {
+                try {
+                    val url = URL(profileUrl)
+                    url.openStream().use { input ->
+                        FileOutputStream(file).use { output ->
+                            input.copyTo(output)
+                        }
+                    }
+                } catch (e: Exception) {
+                    // Si falla, no actualiza localPath
+                }
+            }
+            if (file.exists()) localPath = file.absolutePath
+        }
+    }
+    return when {
+        localPath != null -> {
+            coil.compose.rememberAsyncImagePainter(model = File(localPath!!))
+        }
+        !profileUrl.isNullOrBlank() -> {
+            coil.compose.rememberAsyncImagePainter(model = profileUrl)
+        }
+        else -> {
+            painterResource(id = com.heypudu.heypudu.R.drawable.ic_pudu_logo)
+        }
+    }
+}

@@ -7,31 +7,28 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import com.heypudu.heypudu.navigation.AppNavigation
 import com.heypudu.heypudu.ui.theme.HeyPudúTheme
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 
 class MainActivity : ComponentActivity() {
-    companion object {
-        var isReady: Boolean by mutableStateOf(false)
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         android.util.Log.d("MainActivity", "onCreate: INICIO")
+
         val splashScreen = installSplashScreen()
         android.util.Log.d("MainActivity", "SplashScreen instalado")
-        splashScreen.setKeepOnScreenCondition { !isReady }
-        android.util.Log.d("MainActivity", "SplashScreen condición configurada")
+
+        // Liberar el SplashScreen inmediatamente
+        splashScreen.setKeepOnScreenCondition { false }
+        android.util.Log.d("MainActivity", "SplashScreen liberado")
+
         WindowCompat.setDecorFitsSystemWindows(window, false)
         android.util.Log.d("MainActivity", "DecorFitsSystemWindows configurado")
+
         setContent {
+            android.util.Log.d("MainActivity", "setContent: iniciando")
             HeyPudúTheme {
+                android.util.Log.d("MainActivity", "HeyPudúTheme aplicado, renderizando AppNavigation")
                 AppNavigation()
-                androidx.compose.runtime.LaunchedEffect(Unit) {
-                    android.util.Log.d("MainActivity", "Compose listo, liberando SplashScreen")
-                    isReady = true
-                }
+                android.util.Log.d("MainActivity", "AppNavigation renderizado")
             }
         }
         android.util.Log.d("MainActivity", "setContent ejecutado")

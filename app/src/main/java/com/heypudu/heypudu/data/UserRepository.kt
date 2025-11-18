@@ -5,9 +5,12 @@ import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
+import AppDatabase
+import androidx.room.Room
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
+import android.content.Context
 
 class UserRepository(
     private val auth: FirebaseAuth = FirebaseAuth.getInstance(),
@@ -27,6 +30,13 @@ class UserRepository(
 
     suspend fun uploadProfileImage(imageUri: Uri, userId: String): String = withContext(Dispatchers.IO) {
         val imageRef = storage.reference.child("profile_images/$userId.jpg")
+        imageRef.putFile(imageUri).await()
+        imageRef.downloadUrl.await().toString()
+    }
+
+    suspend fun uploadProfilePhoto(imageUri: Uri, userId: String): String = withContext(Dispatchers.IO) {
+        val timestamp = System.currentTimeMillis()
+        val imageRef = storage.reference.child("profile_photos/$userId/$timestamp.jpg")
         imageRef.putFile(imageUri).await()
         imageRef.downloadUrl.await().toString()
     }
@@ -128,6 +138,113 @@ class UserRepository(
             .addOnFailureListener {
                 onResult(emptyList())
             }
+    }
+
+    suspend fun clearLocalCache(context: Context) = withContext(Dispatchers.IO) {
+        val db = Room.databaseBuilder(
+            context,
+            AppDatabase::class.java,
+            "app_database"
+        ).build()
+        val deletedRows = db.cachedPostDao().clearAll()
+        android.util.Log.d("UserRepository", "clearAll ejecutado, filas eliminadas: $deletedRows")
+        db.close()
+        val cacheDir = context.cacheDir
+        cacheDir.listFiles()?.forEach { file ->
+            if (file.name.startsWith("audio_") || file.name.startsWith("profile_")) {
+                val deleted = file.delete()
+                android.util.Log.d("UserRepository", "Archivo ${file.name} eliminado: $deleted")
+            }
+        }
+        val remainingFiles = cacheDir.listFiles()?.map { it.name } ?: emptyList()
+        android.util.Log.d("UserRepository", "Archivos restantes en caché: $remainingFiles")
+    }
+
+    // ======== FUNCIONES PARA LANZAMIENTOS (ÁLBUMES Y PODCASTS) ========
+
+    suspend fun createAlbum(album: com.heypudu.heypudu.data.models.Album): String? = withContext(Dispatchers.IO) {
+        return@withContext try {
+            val result = firestore.collection("albums").add(album).await()
+            android.util.Log.d("UserRepository", "Álbum creado: ${result.id}")
+            result.id
+        } catch (e: Exception) {
+            android.util.Log.e("UserRepository", "Error al crear álbum: ${e.message}")
+            null
+        }
+    }
+
+    suspend fun createPodcast(podcast: com.heypudu.heypudu.data.models.Podcast): String? = withContext(Dispatchers.IO) {
+        return@withContext try {
+            val result = firestore.collection("podcasts").add(podcast).await()
+            android.util.Log.d("UserRepository", "Podcast creado: ${result.id}")
+            result.id
+        } catch (e: Exception) {
+            android.util.Log.e("UserRepository", "Error al crear podcast: ${e.message}")
+            null
+        }
+    }
+
+    fun getAlbumsByUser(userId: String, onResult: (List<com.heypudu.heypudu.data.models.Album>) -> Unit) {
+        firestore.collection("albums")
+            .whereEqualTo("artistId", userId)
+            .orderBy("createdAt", com.google.firebase.firestore.Query.Direction.DESCENDING)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null || snapshot == null) {
+                    android.util.Log.e("UserRepository", "Error al obtener álbumes: ${error?.message}")
+                    onResult(emptyList())
+                    return@addSnapshotListener
+                }
+                val albums = snapshot.documents.mapNotNull {
+                    val album = it.toObject(com.heypudu.heypudu.data.models.Album::class.java)
+                    album?.copy(albumId = it.id)
+                }
+                android.util.Log.d("UserRepository", "Álbumes obtenidos: ${albums.size}")
+                onResult(albums)
+            }
+    }
+
+    fun getPodcastsByUser(userId: String, onResult: (List<com.heypudu.heypudu.data.models.Podcast>) -> Unit) {
+        firestore.collection("podcasts")
+            .whereEqualTo("creatorId", userId)
+            .orderBy("createdAt", com.google.firebase.firestore.Query.Direction.DESCENDING)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null || snapshot == null) {
+                    android.util.Log.e("UserRepository", "Error al obtener podcasts: ${error?.message}")
+                    onResult(emptyList())
+                    return@addSnapshotListener
+                }
+                val podcasts = snapshot.documents.mapNotNull {
+                    val podcast = it.toObject(com.heypudu.heypudu.data.models.Podcast::class.java)
+                    podcast?.copy(podcastId = it.id)
+                }
+                android.util.Log.d("UserRepository", "Podcasts obtenidos: ${podcasts.size}")
+                onResult(podcasts)
+            }
+    }
+
+    fun getAllPublicReleases(onResult: (List<Any>) -> Unit) {
+        firestore.collection("albums")
+            .whereEqualTo("isPublished", true)
+            .orderBy("createdAt", com.google.firebase.firestore.Query.Direction.DESCENDING)
+            .limit(50)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null || snapshot == null) {
+                    android.util.Log.e("UserRepository", "Error al obtener lanzamientos: ${error?.message}")
+                    onResult(emptyList())
+                    return@addSnapshotListener
+                }
+                val releases = snapshot.documents.mapNotNull {
+                    it.toObject(com.heypudu.heypudu.data.models.Album::class.java)
+                }
+                android.util.Log.d("UserRepository", "Lanzamientos públicos obtenidos: ${releases.size}")
+                onResult(releases)
+            }
+    }
+
+    suspend fun uploadReleaseCover(imageUri: android.net.Uri, releaseId: String, type: String): String = withContext(Dispatchers.IO) {
+        val coverRef = storage.reference.child("release_covers/$type/$releaseId.jpg")
+        coverRef.putFile(imageUri).await()
+        return@withContext coverRef.downloadUrl.await().toString()
     }
 }
 

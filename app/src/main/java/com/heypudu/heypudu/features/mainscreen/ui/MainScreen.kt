@@ -9,9 +9,13 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -33,13 +37,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.heypudu.heypudu.features.mainscreen.viewmodel.MainScreenViewModel
 import com.heypudu.heypudu.ui.components.CreatePostBottomSheet
-import com.heypudu.heypudu.ui.components.MainBottomPlayer
-import com.heypudu.heypudu.ui.components.MainDrawer
 import com.heypudu.heypudu.ui.components.MainTopBar
 import com.heypudu.heypudu.ui.components.PostCard
 import com.heypudu.heypudu.utils.LockScreenOrientation
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import MainDrawer
 
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
@@ -52,6 +55,7 @@ fun MainScreen(navController: NavHostController) {
     var showSignOutDialog by remember { mutableStateOf(false) }
     var showCreatePostDialog by remember { mutableStateOf(false) }
     val postsState by viewModel.posts.collectAsState()
+    val currentPlayingPost by viewModel.currentPlayingPost.collectAsState()
     var isRefreshing by remember { mutableStateOf(false) }
     val pullRefreshState = rememberPullRefreshState(isRefreshing, onRefresh = {
         isRefreshing = true
@@ -86,8 +90,19 @@ fun MainScreen(navController: NavHostController) {
                                 launchSingleTop = true
                             }
                         } else if (route == "profile_graph") {
-                            navController.navigate("profile_graph") {
-                                launchSingleTop = true
+                            val auth = com.google.firebase.auth.FirebaseAuth.getInstance()
+                            val userId = auth.currentUser?.uid
+                            android.util.Log.d("MainScreen", "Navegando a perfil desde Drawer. userId=$userId")
+                            val currentRoute = navController.currentBackStackEntry?.destination?.route
+                            val targetRoute = "profile_graph/profile_view?userId=$userId"
+                            // Solo navega si no estamos ya en el perfil del usuario logueado
+                            if (!userId.isNullOrEmpty() && currentRoute != targetRoute) {
+                                navController.navigate(targetRoute) {
+                                    popUpTo("main_graph") { inclusive = false }
+                                    launchSingleTop = true
+                                }
+                            } else {
+                                android.util.Log.e("MainScreen", "userId es nulo o ya estamos en perfil, no se navega")
                             }
                         }
                     }
@@ -109,14 +124,25 @@ fun MainScreen(navController: NavHostController) {
                                 launchSingleTop = true
                             }
                         },
-                        onMusicClick = { /* TODO: Navegar a reproductor de música */ }
+                        onMusicClick = {
+                            navController.navigate("releases_graph") {
+                                launchSingleTop = true
+                            }
+                        }
                     )
                 },
-                bottomBar = {
-                    MainBottomPlayer(
-                        // Puedes pasar aquí el estado del reproductor
-                        onCreatePost = { showCreatePostDialog = true }
-                    )
+                floatingActionButton = {
+                    FloatingActionButton(
+                        onClick = { showCreatePostDialog = true },
+                        containerColor = Color(0xFFE91E63),
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Mic,
+                            contentDescription = "Crear publicación",
+                            tint = Color.White
+                        )
+                    }
                 }
             ) { innerPadding ->
                 Box(
@@ -125,21 +151,21 @@ fun MainScreen(navController: NavHostController) {
                         .padding(innerPadding)
                         .pullRefresh(pullRefreshState)
                 ) {
-                    LazyColumn(modifier = Modifier.fillMaxSize()) {
-                        if (postsState.isEmpty()) {
-                            item {
-                                Text(
-                                    text = "No hay publicaciones disponibles.",
-                                    color = Color.Gray,
-                                    modifier = Modifier.padding(32.dp)
-                                )
-                            }
-                        } else {
-                            items(postsState) { post ->
-                                PostCard(
-                                    post = post
-                                )
-                            }
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(top = 8.dp)
+                            .pullRefresh(pullRefreshState)
+                    ) {
+                        items(postsState) { post ->
+                            PostCard(
+                                post = post,
+                                onNavigateToProfile = { authorId ->
+                                    navController.navigate("profile_view?userId=$authorId")
+                                },
+                                setCurrentPlayingPost = { viewModel.setCurrentPlayingPost(it) },
+                                viewModel = viewModel
+                            )
                         }
                     }
                     PullRefreshIndicator(
@@ -155,10 +181,11 @@ fun MainScreen(navController: NavHostController) {
                         confirmButton = {
                             TextButton(onClick = {
                                 showSignOutDialog = false
-                                viewModel.signOut()
-                                navController.navigate("greeting") {
-                                    popUpTo(0) { inclusive = true }
-                                    launchSingleTop = true
+                                viewModel.signOut {
+                                    navController.navigate("greeting") {
+                                        popUpTo(0) { inclusive = true }
+                                        launchSingleTop = true
+                                    }
                                 }
                             }) {
                                 Text("Si")

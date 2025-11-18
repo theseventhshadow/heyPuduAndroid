@@ -228,13 +228,3 @@ fun CreateProfileScreen(
     }
 
 
-/*
- --- VISTA PREVIA PARA DISEÑAR EN AISLADO ---
-*/
-@Preview(showBackground = true)
-@Composable
-private fun CreateProfileScreenPreview() {
-    HeyPudúTheme {
-        CreateProfileScreen(onNavigateToVerification = {})
-    }
-}

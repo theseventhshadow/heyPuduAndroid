@@ -8,8 +8,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.SkipNext
-import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -28,8 +26,6 @@ fun MainBottomPlayer(
     artist: String = "Artista",
     isPlaying: Boolean = false,
     onPlayPause: () -> Unit = {},
-    onNext: () -> Unit = {},
-    onPrev: () -> Unit = {},
     onCreatePost: () -> Unit = {}
 ) {
     BottomAppBar(
@@ -42,18 +38,11 @@ fun MainBottomPlayer(
                 .padding(horizontal = 8.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Mini reproductor
-            IconButton(onClick = onPrev) {
-                Icon(Icons.Filled.SkipPrevious, contentDescription = "Anterior")
-            }
             IconButton(onClick = onPlayPause) {
                 Icon(
                     imageVector = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
                     contentDescription = if (isPlaying) "Pausar" else "Reproducir"
                 )
-            }
-            IconButton(onClick = onNext) {
-                Icon(Icons.Filled.SkipNext, contentDescription = "Siguiente")
             }
             Column(
                 modifier = Modifier
@@ -75,7 +64,6 @@ fun MainBottomPlayer(
                     color = Color.DarkGray
                 )
             }
-            // Botón para crear publicación
             IconButton(onClick = onCreatePost) {
                 Icon(Icons.Filled.Mic, contentDescription = "Crear publicación")
             }

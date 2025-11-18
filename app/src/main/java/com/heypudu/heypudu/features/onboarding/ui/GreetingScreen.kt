@@ -200,16 +200,3 @@ fun GreetingScreen(
     }
 }
 
-/*
-    -- La vista previa actualizada para reflejar el nuevo diseño.
- */
-@Preview(showBackground = true, widthDp = 360, heightDp = 780)
-@Composable
-private fun GreetingScreenPreview() {
-    HeyPudúTheme {
-        GreetingScreen(
-            onProfileCreated = {},
-            onLoginClick = {}
-        )
-    }
-}

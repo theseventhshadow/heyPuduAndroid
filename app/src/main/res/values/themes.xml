@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.HeyPudú" parent="android:Theme.Material.Light.NoActionBar" />
+    <!-- Tema principal de tu app (Material Components, para compatibilidad con Compose Material3) -->
+    <style name="Theme.HeyPudú" parent="Theme.MaterialComponents.DayNight" />
+
 </resources>

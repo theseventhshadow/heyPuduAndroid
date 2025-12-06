@@ -159,10 +159,7 @@ fun MainDrawer(
             },
             selected = false,
             onClick = {
-                val userId = auth.currentUser?.uid
-                if (!userId.isNullOrEmpty()) {
-                    onDestinationClick("profile_graph/profile_view?userId=$userId")
-                }
+                onDestinationClick("profile_graph")
             },
             modifier = Modifier
                 .padding(horizontal = 12.dp, vertical = 4.dp)

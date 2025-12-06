@@ -1,6 +1,7 @@
 package com.heypudu.heypudu.features.mainscreen.ui
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -39,6 +40,7 @@ import com.heypudu.heypudu.features.mainscreen.viewmodel.MainScreenViewModel
 import com.heypudu.heypudu.ui.components.CreatePostBottomSheet
 import com.heypudu.heypudu.ui.components.MainTopBar
 import com.heypudu.heypudu.ui.components.PostCard
+import com.heypudu.heypudu.ui.components.UploadProgressBar
 import com.heypudu.heypudu.utils.LockScreenOrientation
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -89,20 +91,12 @@ fun MainScreen(navController: NavHostController) {
                             navController.navigate("main_graph") {
                                 launchSingleTop = true
                             }
-                        } else if (route == "profile_graph") {
+                        } else if (route.startsWith("profile_graph")) {
+                            // Navegar a perfil - obtener userId del usuario logueado
                             val auth = com.google.firebase.auth.FirebaseAuth.getInstance()
                             val userId = auth.currentUser?.uid
-                            android.util.Log.d("MainScreen", "Navegando a perfil desde Drawer. userId=$userId")
-                            val currentRoute = navController.currentBackStackEntry?.destination?.route
-                            val targetRoute = "profile_graph/profile_view?userId=$userId"
-                            // Solo navega si no estamos ya en el perfil del usuario logueado
-                            if (!userId.isNullOrEmpty() && currentRoute != targetRoute) {
-                                navController.navigate(targetRoute) {
-                                    popUpTo("main_graph") { inclusive = false }
-                                    launchSingleTop = true
-                                }
-                            } else {
-                                android.util.Log.e("MainScreen", "userId es nulo o ya estamos en perfil, no se navega")
+                            navController.navigate("profile_view?userId=$userId") {
+                                launchSingleTop = true
                             }
                         } else if (route == "news_screen") {
                             navController.navigate("news_screen") {
@@ -115,25 +109,28 @@ fun MainScreen(navController: NavHostController) {
         ) {
             Scaffold(
                 topBar = {
-                    MainTopBar(
-                        onMenuClick = {
-                            if (!drawerState.isOpen) {
-                                coroutineScope.launch { drawerState.open() }
-                            } else {
-                                coroutineScope.launch { drawerState.close() }
+                    Column {
+                        MainTopBar(
+                            onMenuClick = {
+                                if (!drawerState.isOpen) {
+                                    coroutineScope.launch { drawerState.open() }
+                                } else {
+                                    coroutineScope.launch { drawerState.close() }
+                                }
+                            },
+                            onLogoClick = {
+                                navController.navigate("main_graph") {
+                                    launchSingleTop = true
+                                }
+                            },
+                            onMusicClick = {
+                                navController.navigate("releases_graph") {
+                                    launchSingleTop = true
+                                }
                             }
-                        },
-                        onLogoClick = {
-                            navController.navigate("main_graph") {
-                                launchSingleTop = true
-                            }
-                        },
-                        onMusicClick = {
-                            navController.navigate("releases_graph") {
-                                launchSingleTop = true
-                            }
-                        }
-                    )
+                        )
+                        UploadProgressBar()
+                    }
                 },
                 floatingActionButton = {
                     FloatingActionButton(

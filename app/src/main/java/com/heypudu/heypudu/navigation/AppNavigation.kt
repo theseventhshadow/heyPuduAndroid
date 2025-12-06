@@ -13,6 +13,13 @@ import com.heypudu.heypudu.features.onboarding.navigation.onboardingGraph
 import com.heypudu.heypudu.features.mainscreen.navigation.mainNavGraph
 import com.heypudu.heypudu.features.profile.navigation.profileGraph
 import com.heypudu.heypudu.features.releases.navigation.releasesGraph
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.Alignment
 
 
 object AppRoutes {
@@ -27,6 +34,7 @@ fun AppNavigation() {
 
     val navController = rememberNavController()
     var authState by remember { mutableStateOf<AuthState>(AuthState.Loading) }
+    var startDestination by remember { mutableStateOf<String?>(null) }
 
     android.util.Log.d("AppNavigation", "Inicializando AppNavigation. authState=$authState")
 
@@ -36,7 +44,7 @@ fun AppNavigation() {
         val auth = FirebaseAuth.getInstance()
         val currentUser = auth.currentUser
 
-        authState = if (currentUser != null && currentUser.isEmailVerified) {
+        val newAuthState = if (currentUser != null && currentUser.isEmailVerified) {
             android.util.Log.d("AppNavigation", "Usuario autenticado y email verificado: ${currentUser.uid}")
             AuthState.Authenticated
         } else if (currentUser != null) {
@@ -47,37 +55,53 @@ fun AppNavigation() {
             AuthState.Unauthenticated
         }
 
+        authState = newAuthState
+
+        // Establecer startDestination basado en el estado
+        startDestination = when (newAuthState) {
+            AuthState.Authenticated -> {
+                android.util.Log.d("AppNavigation", "Navegando a MAIN_GRAPH")
+                AppRoutes.MAIN_GRAPH
+            }
+            else -> {
+                android.util.Log.d("AppNavigation", "Navegando a OnboardingRoutes.GRAPH")
+                OnboardingRoutes.GRAPH
+            }
+        }
+
         // Añadir listener para cambios futuros
         val listener = FirebaseAuth.AuthStateListener { authInstance ->
             val user = authInstance.currentUser
-            authState = if (user != null && user.isEmailVerified) {
+            val newState = if (user != null && user.isEmailVerified) {
                 android.util.Log.d("AppNavigation", "AuthStateListener: Usuario autenticado y verificado: ${user.uid}")
                 AuthState.Authenticated
             } else {
                 android.util.Log.d("AppNavigation", "AuthStateListener: Usuario no autenticado")
                 AuthState.Unauthenticated
             }
+            authState = newState
         }
         auth.addAuthStateListener(listener)
     }
 
-    // Determinar el destino inicial basándose en el estado actual
-    val startDestination = when (authState) {
-        AuthState.Authenticated -> {
-            android.util.Log.d("AppNavigation", "Navegando a MAIN_GRAPH")
-            AppRoutes.MAIN_GRAPH
+    // Si startDestination es null, mostrar loading
+    if (startDestination == null) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.White),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator()
         }
-        else -> {
-            android.util.Log.d("AppNavigation", "Navegando a OnboardingRoutes.GRAPH")
-            OnboardingRoutes.GRAPH
-        }
+        return
     }
 
     android.util.Log.d("AppNavigation", "Creando NavHost con startDestination=$startDestination")
 
     NavHost(
         navController = navController,
-        startDestination = startDestination
+        startDestination = startDestination!!
     ) {
         android.util.Log.d("AppNavigation", "Registrando grafos...")
         onboardingGraph(navController)

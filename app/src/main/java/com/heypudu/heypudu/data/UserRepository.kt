@@ -11,6 +11,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import android.content.Context
+import com.heypudu.heypudu.utils.UploadStateManager
 
 class UserRepository(
     private val auth: FirebaseAuth = FirebaseAuth.getInstance(),
@@ -61,9 +62,42 @@ class UserRepository(
     }
 
     suspend fun uploadPostAudio(audioUri: Uri, postId: String): String = withContext(Dispatchers.IO) {
-        val audioRef = storage.reference.child("post_audios/$postId.m4a")
-        audioRef.putFile(audioUri).await()
-        audioRef.downloadUrl.await().toString()
+        return@withContext try {
+            val audioRef = storage.reference.child("post_audios/$postId.m4a")
+
+            // Actualizar progreso: preparando
+            UploadStateManager.updateProgress(15f, "Preparando audio...")
+
+            // Actualizar progreso: comprimiendo
+            UploadStateManager.updateProgress(30f, "Comprimiendo...")
+
+            // Subir archivo con seguimiento de progreso
+            val uploadTask = audioRef.putFile(audioUri)
+
+            // Listener para el progreso de subida
+            uploadTask.addOnProgressListener { taskSnapshot ->
+                val progress = (100.0 * taskSnapshot.bytesTransferred / taskSnapshot.totalByteCount).toFloat()
+                val adjustedProgress = 30 + (progress * 0.6).toFloat() // Del 30% al 90%
+                UploadStateManager.updateProgress(adjustedProgress, "Subiendo... ${adjustedProgress.toInt()}%")
+            }
+
+            // Esperar a que se complete
+            uploadTask.await()
+
+            // Actualizar progreso: obteniendo URL
+            UploadStateManager.updateProgress(95f, "Finalizando...")
+
+            // Obtener URL de descarga
+            val downloadUrl = audioRef.downloadUrl.await().toString()
+
+            UploadStateManager.updateProgress(100f, "¡Publicado!")
+
+            downloadUrl
+        } catch (e: Exception) {
+            android.util.Log.e("UserRepository", "Error al subir audio: ${e.message}")
+            UploadStateManager.updateProgress(0f, "Error en la subida")
+            ""
+        }
     }
 
     suspend fun incrementPlayCount(postId: String) = withContext(Dispatchers.IO) {

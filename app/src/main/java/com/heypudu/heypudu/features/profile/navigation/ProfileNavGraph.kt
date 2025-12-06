@@ -28,8 +28,7 @@ fun NavGraphBuilder.profileGraph(navController: NavHostController) {
             ProfileScreen(
                 userId = userId,
                 navController = navController,
-                onGoToEdit = { navController.navigate(ProfileRoutes.EDIT + "?userId=$userId") },
-                onBack = { navController.popBackStack() }
+                onGoToEdit = { navController.navigate(ProfileRoutes.EDIT + "?userId=$userId") }
             )
         }
 

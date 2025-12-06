@@ -1,0 +1,120 @@
+🎵 CÓMO ACCEDER A NEWSSCREEN - EVENTOS MUSICALES
+================================================
+
+✅ DESDE DONDE SE LLAMA:
+
+1️⃣ MENÚ LATERAL (Drawer)
+   - Toca el icono ☰ (hamburgesa) en la parte superior izquierda
+   - Se abre el menú lateral
+   - Opción: "Eventos Musicales"
+   - Toca la opción para ir a la pantalla
+
+2️⃣ RUTA DE NAVEGACIÓN:
+   - Ruta: "news_screen"
+   - Ubicación: En el grafo de navegación principal (mainNavGraph)
+   - Acceso: A través del menú del drawer
+
+---
+
+📍 RUTA DE NAVEGACIÓN EN EL CÓDIGO:
+
+MainNavGraph.kt:
+├─ MainRoutes.MAIN = "main_screen" (Pantalla Principal)
+├─ MainRoutes.NEWS = "news_screen" (Eventos Musicales) ← NUEVA
+
+---
+
+🔄 FLUJO DE NAVEGACIÓN:
+
+┌─────────────────────────────┐
+│   MainScreen (Inicio)       │
+│  (Pantalla Principal)       │
+└──────────┬──────────────────┘
+           │
+           │ Toca menú ☰
+           ▼
+┌─────────────────────────────┐
+│   MainDrawer (Menú)         │
+│  Opciones:                  │
+│  • Inicio                   │
+│  • Perfil                   │
+│  • Eventos Musicales ◄──── NUEVA
+│  • Cerrar sesión            │
+└──────────┬──────────────────┘
+           │
+           │ Toca "Eventos Musicales"
+           ▼
+┌─────────────────────────────┐
+│   NewsScreen                │
+│  (Búsqueda de eventos)      │
+│  • Barra de búsqueda        │
+│  • Lista de artículos       │
+└─────────────────────────────┘
+
+---
+
+📝 CAMBIOS REALIZADOS:
+
+1. MainNavGraph.kt
+   ✅ Añadida ruta: MainRoutes.NEWS = "news_screen"
+   ✅ Registrado composable: composable(MainRoutes.NEWS) { NewsScreen() }
+
+2. MainDrawer.kt
+   ✅ Importado icono: Icons.Default.Newspaper
+   ✅ Añadida opción: "Eventos Musicales"
+   ✅ Acción: navega a "news_screen"
+
+3. MainScreen.kt
+   ✅ Añadido caso: route == "news_screen"
+   ✅ Navega a: navController.navigate("news_screen")
+
+---
+
+🎯 EJEMPLO DE USO:
+
+1. Abres HeyPudú
+2. Ves la pantalla principal con posts
+3. Toca el menú (icono ☰) arriba a la izquierda
+4. El drawer se abre desde la izquierda
+5. Ves 4 opciones:
+   - Inicio
+   - Perfil
+   - Eventos Musicales ← AQUÍ
+   - Cerrar sesión
+6. Toca "Eventos Musicales"
+7. Se abre NewsScreen
+8. Puedes buscar eventos musicales
+
+---
+
+💡 INTEGRACIONES:
+
+✅ NewsScreen integrada en mainNavGraph
+✅ Opción visible en el drawer
+✅ Navegación manejada en MainScreen
+✅ Icono visual: Newspaper (📰)
+✅ Flujo de navegación completo
+
+---
+
+⚠️ NOTA IMPORTANTE:
+
+Antes de usar NewsScreen, recuerda:
+
+1. Obtener API Key en https://newsapi.org
+2. Reemplazar en NewsRepository.kt:
+   private val API_KEY = "TU_API_KEY"
+3. Ejecutar: ./gradlew test
+4. ¡Listo! Usa la app normalmente
+
+---
+
+🧪 TESTS INCLUIDOS:
+
+✅ 4 tests de NewsApiService
+✅ Validación de modelos
+✅ Verificación de datos
+
+Ejecuta: ./gradlew test
+
+

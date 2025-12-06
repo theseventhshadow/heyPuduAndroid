@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.google.gms.google.services)
+    id("jacoco")
 }
 
 android {
@@ -94,4 +95,24 @@ dependencies {
     implementation(libs.okhttp)
     implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
 
+    // Unit Test Dependencies - Only JUnit and Truth
+    testImplementation("com.google.truth:truth:1.1.5")
+    testImplementation(libs.junit)
+
+    // Android Test Dependencies
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+}
+
+// JaCoCo configuration for code coverage reporting
+jacoco {
+    toolVersion = "0.8.10"
+}
+
+tasks.register("jacocoTestReport") {
+    dependsOn("testDebugUnitTest")
+    description = "Generate JaCoCo coverage report"
+    group = "verification"
 }

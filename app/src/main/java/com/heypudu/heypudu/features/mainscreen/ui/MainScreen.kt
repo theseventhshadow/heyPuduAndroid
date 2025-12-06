@@ -104,6 +104,10 @@ fun MainScreen(navController: NavHostController) {
                             } else {
                                 android.util.Log.e("MainScreen", "userId es nulo o ya estamos en perfil, no se navega")
                             }
+                        } else if (route == "news_screen") {
+                            navController.navigate("news_screen") {
+                                launchSingleTop = true
+                            }
                         }
                     }
                 )

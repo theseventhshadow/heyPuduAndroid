@@ -8,8 +8,8 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
-    // Cambia la BASE_URL por la de tu API
-    private const val BASE_URL = "https://api.example.com/"
+    // BASE_URL para NewsAPI
+    private const val BASE_URL = "https://newsapi.org/"
 
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY

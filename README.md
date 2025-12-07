@@ -19,7 +19,7 @@ heyPudú es una aplicación Android moderna enfocada en el compartir de contenid
 - **SDK Objetivo**: 36
 - **SDK de Compilación**: 36
 - **Versión Java**: 11
-- **Versión Actual**: 0.1
+- **Versión Actual**: 0.2
 
 ## Características Principales
 
@@ -311,7 +311,8 @@ Este proyecto es de propiedad privada.
 - Suite de pruebas unitarias con JUnit y Truth
 
 - App firmada en Android Studio
-<img width="1600" height="900" alt="Captura de pantalla_20251207_204510" src="https://github.com/user-attachments/assets/8fa43ca1-f403-416e-a1e1-a19594dd63a7" />
+<img width="1600" height="900" alt="2" src="https://github.com/user-attachments/assets/ac4c2959-906e-4c7c-8b22-ce8507b252fc" />
+
 
 ---
 

@@ -4,11 +4,15 @@ import android.Manifest
 import android.content.Intent
 import android.net.Uri
 import android.media.MediaRecorder
+import android.media.MediaPlayer
 import android.os.Environment
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -28,7 +32,15 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.core.content.ContextCompat
 import androidx.core.content.PermissionChecker
 import java.io.File
+import com.heypudu.heypudu.utils.UploadStateManager
+import kotlinx.coroutines.launch
 var permissionDenied by mutableStateOf(false)
+
+fun formatTime(seconds: Int): String {
+    val mins = seconds / 60
+    val secs = seconds % 60
+    return String.format(Locale.getDefault(), "%02d:%02d", mins, secs)
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -70,6 +82,15 @@ fun CreatePostBottomSheet(
     var recordedFilePath by remember { mutableStateOf("") }
     var recordingSeconds by remember { mutableStateOf(0) }
 
+    // Variables para el reproductor
+    var isPlaying by remember { mutableStateOf(false) }
+    var mediaPlayer: MediaPlayer? by remember { mutableStateOf(null) }
+    var playbackPosition by remember { mutableStateOf(0) }
+    var audioDuration by remember { mutableStateOf(0) }
+
+    // CoroutineScope para publicar
+    val coroutineScope = rememberCoroutineScope()
+
     fun startRecording() {
         val fileName = "audio_${System.currentTimeMillis()}.m4a"
         val file = File(context.getExternalFilesDir(Environment.DIRECTORY_MUSIC), fileName)
@@ -93,6 +114,60 @@ fun CreatePostBottomSheet(
         recorder = null
         isRecording = false
         audioUri = Uri.fromFile(File(recordedFilePath))
+    }
+
+    fun playAudio() {
+        audioUri?.let { uri ->
+            try {
+                mediaPlayer?.release()
+                mediaPlayer = MediaPlayer().apply {
+                    setDataSource(context, uri)
+                    prepare()
+                    audioDuration = duration
+                    start()
+                    isPlaying = true
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("CreatePostBottomSheet", "Error playing audio: ${e.message}")
+            }
+        }
+    }
+
+    fun pauseAudio() {
+        mediaPlayer?.apply {
+            pause()
+            isPlaying = false
+        }
+    }
+
+    fun stopAudio() {
+        mediaPlayer?.apply {
+            stop()
+            release()
+        }
+        mediaPlayer = null
+        isPlaying = false
+        playbackPosition = 0
+    }
+
+    // Actualizar posición del audio mientras se reproduce
+    LaunchedEffect(isPlaying) {
+        if (isPlaying && mediaPlayer != null) {
+            while (isPlaying && mediaPlayer != null) {
+                playbackPosition = mediaPlayer?.currentPosition ?: 0
+                kotlinx.coroutines.delay(100)
+            }
+        }
+    }
+
+    // Limpiar reproductor cuando se cierre
+    DisposableEffect(show) {
+        onDispose {
+            if (!show) {
+                mediaPlayer?.release()
+                mediaPlayer = null
+            }
+        }
     }
 
     fun hasAudioPermission(): Boolean {
@@ -191,8 +266,74 @@ fun CreatePostBottomSheet(
                     Text("Grabando: %02d:%02d".format(min, sec), fontSize = 14.sp, color = Color(0xFFE91E63))
                 }
                 if (audioUri != null) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text("Audio seleccionado", fontSize = 12.sp, color = Color(0xFF33E7B2))
+                    Spacer(modifier = Modifier.height(12.dp))
+                    // Mini reproductor
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF33E7B2).copy(alpha = 0.1f)),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF33E7B2))
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(12.dp)
+                        ) {
+                            Text("Previsualización de audio", fontSize = 12.sp, color = Color(0xFF333333), modifier = Modifier.padding(bottom = 8.dp))
+
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .align(Alignment.CenterHorizontally),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                // Botón Play/Pause
+                                Button(
+                                    onClick = {
+                                        if (isPlaying) {
+                                            pauseAudio()
+                                        } else {
+                                            playAudio()
+                                        }
+                                    },
+                                    modifier = Modifier.size(40.dp),
+                                    shape = RoundedCornerShape(8.dp),
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFA76A6)),
+                                    contentPadding = PaddingValues(0.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                                        contentDescription = if (isPlaying) "Pausar" else "Reproducir",
+                                        tint = Color.Black,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.width(8.dp))
+
+                                // Slider de posición
+                                Slider(
+                                    value = if (audioDuration > 0) playbackPosition.toFloat() / audioDuration else 0f,
+                                    onValueChange = { newValue ->
+                                        mediaPlayer?.apply {
+                                            seekTo((newValue * audioDuration).toInt())
+                                        }
+                                    },
+                                    modifier = Modifier.weight(1f)
+                                )
+
+                                Spacer(modifier = Modifier.width(8.dp))
+
+                                // Tiempo
+                                Text(
+                                    text = formatTime(playbackPosition / 1000),
+                                    fontSize = 11.sp,
+                                    color = Color.DarkGray,
+                                    modifier = Modifier.width(30.dp)
+                                )
+                            }
+                        }
+                    }
                 }
                 if (permissionDenied) {
                     Spacer(modifier = Modifier.height(8.dp))
@@ -211,8 +352,24 @@ fun CreatePostBottomSheet(
                 Spacer(modifier = Modifier.height(20.dp))
                 Button(
                     onClick = {
-                        onPost(title, message, audioUri, authorUsername, authorPhotoUrl, publishedAt, dateString)
-                        onDismiss()
+                        // Iniciar el progreso de carga
+                        UploadStateManager.setUploading(true)
+                        UploadStateManager.updateProgress(10f, "Preparando publicación...")
+
+                        // Llamar a onPost que maneja la subida real
+                        coroutineScope.launch {
+                            try {
+                                onPost(title, message, audioUri, authorUsername, authorPhotoUrl, publishedAt, dateString)
+                                // El progreso real se actualiza en uploadPostAudio
+                                UploadStateManager.setCompleted()
+                            } catch (e: Exception) {
+                                android.util.Log.e("CreatePostBottomSheet", "Error al publicar: ${e.message}")
+                                UploadStateManager.updateProgress(0f, "Error en la publicación")
+                            }
+
+                            // Cerrar después de que se complete la publicación
+                            onDismiss()
+                        }
                     },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(24.dp),

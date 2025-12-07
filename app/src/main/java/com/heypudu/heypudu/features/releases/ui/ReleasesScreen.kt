@@ -42,12 +42,17 @@ fun ReleasesScreen(
                             }
                         }
                         "profile_graph" -> {
-                            if (!currentUserId.isNullOrEmpty()) {
-                                navController.navigate("profile_graph/profile_view?userId=$currentUserId") {
-                                    popUpTo("main_graph") { inclusive = false }
-                                    launchSingleTop = true
-                                }
+                            navController.navigate("profile_view?userId=$currentUserId") {
+                                launchSingleTop = true
                             }
+                        }
+                        "news_screen" -> {
+                            navController.navigate("news_screen") {
+                                launchSingleTop = true
+                            }
+                        }
+                        "logout" -> {
+                            // TODO: Implementar logout
                         }
                     }
                 }

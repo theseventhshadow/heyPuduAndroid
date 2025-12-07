@@ -7,10 +7,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -41,8 +38,7 @@ import com.heypudu.heypudu.ui.components.CreateReleaseBottomSheet
 fun ProfileScreen(
     userId: String?,
     navController: androidx.navigation.NavHostController,
-    onGoToEdit: () -> Unit,
-    onBack: () -> Unit
+    onGoToEdit: () -> Unit
 ) {
     val viewModel: ProfileViewModel = viewModel()
     val photoUrl by viewModel.photoUrl.collectAsState()
@@ -55,9 +51,16 @@ fun ProfileScreen(
     val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(userId) {
-        if (userId != null) {
-            // Corregido: solo una función loadUser
-            viewModel.loadUser(userId)
+        // Si userId es null o vacío, usar el usuario logueado actual
+        val userIdToLoad = if (userId.isNullOrEmpty()) {
+            val auth = com.google.firebase.auth.FirebaseAuth.getInstance()
+            auth.currentUser?.uid
+        } else {
+            userId
+        }
+
+        if (!userIdToLoad.isNullOrEmpty()) {
+            viewModel.loadUser(userIdToLoad)
         }
     }
 
@@ -69,10 +72,6 @@ fun ProfileScreen(
             MainDrawer(
                 onDestinationClick = { destination ->
                     coroutineScope.launch { drawerState.close() }
-                    val auth = com.google.firebase.auth.FirebaseAuth.getInstance()
-                    val currentUserId = auth.currentUser?.uid
-                    val currentRoute = navController.currentBackStackEntry?.destination?.route
-                    val targetRoute = "profile_graph/profile_view?userId=$currentUserId"
                     when (destination) {
                         "main_graph" -> {
                             navController.navigate("main_graph") {
@@ -80,16 +79,15 @@ fun ProfileScreen(
                             }
                         }
                         "profile_graph" -> {
-                            // Solo navega si no estamos ya en el perfil del usuario logueado
-                            if (!currentUserId.isNullOrEmpty() && currentRoute != targetRoute) {
-                                navController.navigate(targetRoute) {
-                                    popUpTo("main_graph") { inclusive = false }
-                                    launchSingleTop = true
-                                }
-                            }
+                            // Ya estamos en perfil, cerrar drawer
                         }
                         "logout" -> {
                             showSignOutDialog = true
+                        }
+                        "news_screen" -> {
+                            navController.navigate("news_screen") {
+                                launchSingleTop = true
+                            }
                         }
                     }
                 }

@@ -151,60 +151,61 @@ fun PostCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         modifier = modifier
             .fillMaxWidth()
-            .padding(8.dp)
+            .padding(4.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(8.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.Top
         ) {
             Column(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 // Título
                 Text(
                     text = post.title ?: "Sin título",
                     fontWeight = FontWeight.Bold,
-                    fontSize = 22.sp,
+                    fontSize = 16.sp,
                     color = Color.Black,
                     maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
+                    lineHeight = 16.sp
                 )
                 // Fecha de publicación
                 Text(
                     text = formatPublishedDate(post.publishedAt),
-                    fontSize = 12.sp,
+                    fontSize = 10.sp,
                     color = Color.Gray,
                     maxLines = 1
                 )
                 // Mensaje
                 Text(
                     text = post.content ?: "",
-                    fontSize = 15.sp,
+                    fontSize = 12.sp,
                     color = Color.DarkGray,
-                    maxLines = 5,
-                    overflow = TextOverflow.Ellipsis
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    lineHeight = 14.sp
                 )
                 // Autor
                 Text(
                     text = post.authorUsername ?: "Autor desconocido",
-                    fontSize = 14.sp,
+                    fontSize = 11.sp,
                     color = Color.Gray,
                     maxLines = 1,
                     fontWeight = FontWeight.Normal
                 )
             }
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(6.dp))
             // Imagen de perfil circular clickable
-            val context = LocalContext.current
             AsyncImage(
                 model = post.authorPhotoUrl ?: painterResource(id = com.heypudu.heypudu.R.drawable.ic_pudu_logo),
                 contentDescription = "Foto de perfil",
                 modifier = Modifier
-                    .size(56.dp)
+                    .size(44.dp)
                     .clip(CircleShape)
                     .clickable { post.authorId?.let { onNavigateToProfile(it) } },
                 contentScale = ContentScale.Crop
@@ -217,56 +218,60 @@ fun PostCard(
             val durationMs = if (audioState.value.audioId == audioId) audioState.value.durationMs else 0
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp, vertical = 4.dp)
             ) {
                 Button(
                     onClick = { togglePlayPause() },
-                    modifier = Modifier.size(56.dp),
+                    modifier = Modifier.size(40.dp),
                     colors = androidx.compose.material3.ButtonDefaults.buttonColors(
                         containerColor = Color(0xFFFA76A6),
                         contentColor = Color.Black
                     ),
                     shape = RoundedCornerShape(6.dp),
-                    border = androidx.compose.foundation.BorderStroke(2.dp, Color.Black)
+                    border = androidx.compose.foundation.BorderStroke(1.5.dp, Color.Black)
                 ) {
                     Icon(
                         imageVector = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
                         contentDescription = if (isPlaying) "Pausar" else "Reproducir",
                         tint = Color.Black,
-                        modifier = Modifier.size(48.dp)
+                        modifier = Modifier.size(32.dp)
                     )
                 }
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(4.dp))
                 Slider(
                     value = if (durationMs > 0) positionMs.toFloat() / durationMs else 0f,
                     onValueChange = { seekToFraction(it) },
                     modifier = Modifier.weight(1f)
                 )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(text = formatMs(positionMs), fontSize = 13.sp, color = Color.DarkGray)
                 Spacer(modifier = Modifier.width(4.dp))
-                Text(text = formatMs(if (durationMs > 0) durationMs else 0), fontSize = 13.sp, color = Color.DarkGray)
+                Text(text = formatMs(positionMs), fontSize = 10.sp, color = Color.DarkGray)
+                Spacer(modifier = Modifier.width(1.dp))
+                Text(text = formatMs(if (durationMs > 0) durationMs else 0), fontSize = 10.sp, color = Color.DarkGray)
             }
         }
         // Indicadores de reproducciones y likes
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 4.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "${playCount} heyPlays!",
-                fontSize = 15.sp,
+                text = "${playCount} heyplays!",
+                fontSize = 11.sp,
                 color = Color(0xFF333333),
                 fontWeight = FontWeight.Medium
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(text = likes.toString(), fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                Text(text = likes.toString(), fontWeight = FontWeight.Bold, fontSize = 11.sp)
                 Icon(
                     imageVector = Icons.Filled.Favorite,
                     contentDescription = "Corazón",
                     tint = Color.Red,
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier.size(14.dp)
                 )
                 TextButton(
                     onClick = {
@@ -285,7 +290,7 @@ fun PostCard(
                         }
                     },
                     content = {
-                        Text("Pudús", fontSize = 15.sp)
+                        Text("pudús", fontSize = 11.sp)
                     }
                 )
             }

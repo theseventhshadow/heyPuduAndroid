@@ -96,7 +96,7 @@ dependencies {
     implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
 
     // Unit Test Dependencies - Only JUnit and Truth
-    testImplementation("com.google.truth:truth:1.1.5")
+    testImplementation(libs.truth)
     testImplementation(libs.junit)
 
     // Android Test Dependencies

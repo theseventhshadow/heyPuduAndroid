@@ -15,7 +15,7 @@ class RetrofitClientTest {
     fun retrofitClient_hasCorrectBaseUrl() {
         // Assert
         assertThat(RetrofitClient.retrofit.baseUrl().toString())
-            .isEqualTo("https://api.example.com/")
+            .isEqualTo("https://newsapi.org/")
     }
 
     @Test

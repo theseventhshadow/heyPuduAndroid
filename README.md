@@ -249,6 +249,112 @@ Las operaciones en Firebase están protegidas mediante reglas de seguridad que g
 - `google-services.json` para configuración
 - Almacenamiento seguro de preferencias de usuario
 
+## Testing
+
+### Framework de Testing
+
+El proyecto implementa pruebas unitarias automatizadas con las siguientes librerías:
+
+- **JUnit 4**: Framework principal para pruebas unitarias
+- **Google Truth**: Librería de aserciones fluida que proporciona mensajes de error más claros y legibles
+
+### Estructura de Pruebas
+
+Las pruebas se organizan en el directorio `src/test/`:
+
+- **RetrofitClientTest**: Validación de la configuración del cliente HTTP y endpoints
+- **TestDataFactoryTest**: Pruebas de creación de datos de prueba para modelos (Post, Comment, Album, Podcast)
+- **NewsApiServiceTest**: Pruebas del servicio de integración con NewsAPI
+
+### Ejecución de Pruebas
+
+```bash
+# Ejecutar todas las pruebas unitarias
+./gradlew test
+
+# Ejecutar pruebas de una variante específica
+./gradlew testDebugUnitTest
+./gradlew testReleaseUnitTest
+
+# Ver reportes de pruebas
+# Los reportes se generan en: app/build/reports/tests/
+```
+
+### Cobertura Actual
+
+- Validación de configuración de Retrofit
+- Pruebas de modelos de datos (Post, Comment, Album, Podcast)
+- Verificación de endpoints de API (NewsAPI)
+
+---
+
+## Integración con NewsAPI
+
+### Descripción
+
+heyPudú utiliza **NewsAPI** para enriquecer el feed de usuarios con contenido informativo relevante. Esta integración permite mostrar artículos de noticias contextuales que complementan el contenido de audio de la comunidad.
+
+### Configuración
+
+**Endpoint Base**: `https://newsapi.org/`
+
+**Clave API**: Se configura en `local.properties` (no se incluye en el repositorio por seguridad)
+
+```properties
+news_api_key=TU_CLAVE_AQUI
+```
+
+### Características Principales
+
+- Búsqueda de artículos por palabras clave
+- Filtrado por país, idioma y categoría
+- Ordenamiento por relevancia, popularidad o fecha
+- Soporte para múltiples idiomas
+- Actualización de feeds en tiempo real
+- Caché local para reducir llamadas a API
+
+### Endpoints Utilizados
+
+**Top Headlines** - Noticias principales por categoría
+```
+GET /v2/top-headlines
+Parámetros: country, category, language
+```
+
+**Everything (Búsqueda Avanzada)** - Búsqueda completa en historial de artículos
+```
+GET /v2/everything
+Parámetros: q, from, to, sortBy, language, searchIn
+```
+
+### Modelos de Datos
+
+**Article**
+- `title`: Título del artículo
+- `description`: Resumen breve del contenido
+- `url`: Enlace al artículo completo
+- `urlToImage`: URL de la imagen del artículo
+- `publishedAt`: Fecha de publicación
+- `source`: Información de la fuente de noticias
+
+**NewsResponse**
+- `status`: Estado de la respuesta (ok/error)
+- `articles`: Lista de artículos encontrados
+- `totalResults`: Total de artículos disponibles para la búsqueda
+
+### Integración en la UI
+
+Los artículos de NewsAPI se muestran en el feed principal intercalados estratégicamente con las publicaciones de audio de usuarios, proporcionando variedad de contenido y contexto informativo.
+
+### Limitaciones y Consideraciones
+
+- Plan gratuito limitado a 100 solicitudes por día
+- Las imágenes del artículo pueden no estar disponibles en todos los casos
+- Algunas fuentes pueden tener restricciones de acceso
+- Se implementa caché local para optimizar llamadas a API
+
+---
+
 ## Licencia
 
 Este proyecto es de propiedad privada.
@@ -261,6 +367,8 @@ Este proyecto es de propiedad privada.
 - Sistema de autenticación de usuario
 - Implementación de características sociales
 - Optimización de almacenamiento en caché de audio
+- Integración con NewsAPI
+- Suite de pruebas unitarias con JUnit y Truth
 
 ---
 

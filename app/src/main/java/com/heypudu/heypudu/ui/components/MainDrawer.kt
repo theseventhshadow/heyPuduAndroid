@@ -5,6 +5,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.Newspaper
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -44,7 +45,6 @@ fun MainDrawer(
         modifier = Modifier.width(280.dp),
         drawerContainerColor = Color.White
     ) {
-        // ...Header con gradiente y foto de usuario...
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -94,7 +94,6 @@ fun MainDrawer(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Separador
         HorizontalDivider(
             color = Color.Gray.copy(alpha = 0.2f),
             thickness = 1.dp,
@@ -160,11 +159,43 @@ fun MainDrawer(
             },
             selected = false,
             onClick = {
-                val userId = auth.currentUser?.uid
-                if (!userId.isNullOrEmpty()) {
-                    onDestinationClick("profile_graph/profile_view?userId=$userId")
+                onDestinationClick("profile_graph")
+            },
+            modifier = Modifier
+                .padding(horizontal = 12.dp, vertical = 4.dp)
+                .clip(RoundedCornerShape(8.dp)),
+            colors = NavigationDrawerItemDefaults.colors(
+                selectedContainerColor = Color(0xFFE91E63).copy(alpha = 0.3f),
+                unselectedContainerColor = Color.Transparent,
+                selectedTextColor = Color.White,
+                unselectedTextColor = Color.White
+            )
+        )
+
+        // Opción: Eventos Musicales
+        NavigationDrawerItem(
+            label = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Newspaper,
+                        contentDescription = "Eventos Musicales",
+                        tint = Color.Black,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Text(
+                        "Eventos Musicales",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color.Black
+                    )
                 }
             },
+            selected = false,
+            onClick = { onDestinationClick("news_screen") },
             modifier = Modifier
                 .padding(horizontal = 12.dp, vertical = 4.dp)
                 .clip(RoundedCornerShape(8.dp)),
@@ -178,7 +209,6 @@ fun MainDrawer(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Separador
         HorizontalDivider(
             color = Color.Gray.copy(alpha = 0.2f),
             thickness = 1.dp,
@@ -222,7 +252,7 @@ fun MainDrawer(
 
         Spacer(modifier = Modifier.weight(1f))
 
-        // Footer con información
+        // Footer
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -242,3 +272,4 @@ fun MainDrawer(
         }
     }
 }
+

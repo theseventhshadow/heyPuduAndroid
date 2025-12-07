@@ -1,0 +1,250 @@
+EJEMPLOS DE USO - NewsAPI
+==========================
+
+📌 EJEMPLO 1: Buscar Eventos Musicales Generales
+
+```kotlin
+// En tu Activity/Fragment/Screen
+val viewModel = NewsViewModel()
+
+// Buscar eventos
+viewModel.searchMusicalEvents("conciertos en vivo")
+
+// Observar resultados
+viewModel.musicalEvents.collect { articles ->
+    articles.forEach { article ->
+        println("${article.title} - ${article.source.name}")
+    }
+}
+```
+
+---
+
+📌 EJEMPLO 2: Búsqueda en Screen Compose
+
+```kotlin
+@Composable
+fun MusicEventsScreen(viewModel: NewsViewModel = viewModel()) {
+    var searchQuery by remember { mutableStateOf("") }
+    val articles by viewModel.musicalEvents.collectAsState()
+
+    Column {
+        TextField(
+            value = searchQuery,
+            onValueChange = { searchQuery = it },
+            label = { Text("Buscar eventos") }
+        )
+
+        Button(onClick = {
+            viewModel.searchMusicalEvents(searchQuery)
+        }) {
+            Text("Buscar")
+        }
+
+        LazyColumn {
+            items(articles) { article ->
+                ArticleCard(article)
+            }
+        }
+    }
+}
+```
+
+---
+
+📌 EJEMPLO 3: Buscar por Artista
+
+```kotlin
+val viewModel = NewsViewModel()
+
+// Buscar noticias de un artista
+viewModel.searchMusicalArtists("Taylor Swift")
+
+// Procesar resultados
+viewModel.musicalEvents.collect { articles ->
+    articles.forEach { article ->
+        println("Título: ${article.title}")
+        println("Fuente: ${article.source.name}")
+        println("Enlace: ${article.url}")
+        println("---")
+    }
+}
+```
+
+---
+
+📌 EJEMPLO 4: Buscar Conciertos
+
+```kotlin
+val viewModel = NewsViewModel()
+
+// Buscar conciertos próximos
+viewModel.searchConcerts()
+
+// Filtrar por relevancia
+viewModel.musicalEvents.collect { articles ->
+    val relevantConcerts = articles.filter {
+        it.title.contains("concierto", ignoreCase = true) ||
+        it.title.contains("festival", ignoreCase = true)
+    }
+
+    relevantConcerts.forEach { concert ->
+        println("${concert.title} - Publicado: ${concert.publishedAt}")
+    }
+}
+```
+
+---
+
+📌 EJEMPLO 5: Manejo de Errores
+
+```kotlin
+val viewModel = NewsViewModel()
+
+viewModel.apply {
+    searchMusicalEvents("eventos musicales")
+
+    // Observar estado de carga
+    isLoading.collect { loading ->
+        if (loading) println("Cargando...")
+    }
+
+    // Observar errores
+    error.collect { errorMsg ->
+        errorMsg?.let {
+            println("Error: $it")
+        }
+    }
+}
+```
+
+---
+
+📌 EJEMPLO 6: Combinar con datos locales
+
+```kotlin
+data class EventoLocal(
+    val titulo: String,
+    val artista: String,
+    val fecha: String
+)
+
+fun buscarNoticiasDeEventos(evento: EventoLocal, viewModel: NewsViewModel) {
+    // Buscar en NewsAPI
+    viewModel.searchMusicalArtists(evento.artista)
+
+    // Combinar con datos locales
+    viewModel.musicalEvents.collect { articulos ->
+        val combinados = articulos.map { articulo ->
+            EventoEnriquecido(
+                titulo = evento.titulo,
+                artista = evento.artista,
+                noticia = articulo.title,
+                fuente = articulo.source.name,
+                url = articulo.url
+            )
+        }
+
+        combinados.forEach { evento ->
+            println("${evento.artista}: ${evento.noticia}")
+        }
+    }
+}
+```
+
+---
+
+📌 EJEMPLO 7: Mostrar en RecyclerView
+
+```kotlin
+class ArticulosAdapter : RecyclerView.Adapter<ArticuloViewHolder>() {
+    private val articulos = mutableListOf<NewsArticle>()
+
+    override fun onBindViewHolder(holder: ArticuloViewHolder, position: Int) {
+        val articulo = articulos[position]
+
+        holder.apply {
+            titleView.text = articulo.title
+            sourceView.text = articulo.source.name
+            descriptionView.text = articulo.description
+            dateView.text = articulo.publishedAt
+
+            itemView.setOnClickListener {
+                // Abrir URL en navegador
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(articulo.url))
+                itemView.context.startActivity(intent)
+            }
+        }
+    }
+
+    fun updateArticles(newArticles: List<NewsArticle>) {
+        articulos.clear()
+        articulos.addAll(newArticles)
+        notifyDataSetChanged()
+    }
+}
+```
+
+---
+
+📌 EJEMPLO 8: Búsqueda Periódica
+
+```kotlin
+class NewsUpdaterService : Service() {
+    private val viewModel = NewsViewModel()
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        // Actualizar cada 6 horas
+        lifecycleScope.launch {
+            while (true) {
+                viewModel.searchConcerts()
+                delay(6 * 60 * 60 * 1000) // 6 horas
+            }
+        }
+        return START_STICKY
+    }
+}
+```
+
+---
+
+📌 EJEMPLO 9: Compartir Artículos
+
+```kotlin
+fun compartirArticulo(article: NewsArticle, context: Context) {
+    val shareText = "${article.title}\n${article.url}"
+
+    val intent = Intent().apply {
+        action = Intent.ACTION_SEND
+        putExtra(Intent.EXTRA_TEXT, shareText)
+        type = "text/plain"
+    }
+
+    context.startActivity(Intent.createChooser(intent, "Compartir"))
+}
+```
+
+---
+
+📌 EJEMPLO 10: Guardar Favoritos Localmente
+
+```kotlin
+fun guardarArticuloFavorito(article: NewsArticle) {
+    val db = Room.databaseBuilder(
+        context,
+        AppDatabase::class.java,
+        "app_db"
+    ).build()
+
+    val favorito = ArticuloFavorito(
+        titulo = article.title,
+        url = article.url,
+        fuente = article.source.name,
+        fechaGuardada = System.currentTimeMillis()
+    )
+
+    db.articuloDao().insert(favorito)
+}
+```
+
+

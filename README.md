@@ -200,7 +200,6 @@ adb install app/build/outputs/apk/debug/app-debug.apk
 
 ## Problemas Conocidos y Limitaciones
 
-- Verificación de correo no bloqueante para acceso de usuario
 - Soporte de formato de audio limitado a MP4A
 - Características de álbumes en desarrollo
 - Sistema de comentarios en implementación
@@ -208,7 +207,7 @@ adb install app/build/outputs/apk/debug/app-debug.apk
 
 ## Estado de Desarrollo
 
-**Versión Actual**: 0.1
+**Versión Actual**: 0.2
 **Estado**: En desarrollo activo
 
 ### Características Completadas
@@ -245,7 +244,6 @@ Las operaciones en Firebase están protegidas mediante reglas de seguridad que g
 ### Datos Sensibles
 
 - Tokens de autenticación gestionados por Firebase
-- Sin claves API hardcodeadas
 - `google-services.json` para configuración
 - Almacenamiento seguro de preferencias de usuario
 
@@ -271,13 +269,6 @@ Las pruebas se organizan en el directorio `src/test/`:
 ```bash
 # Ejecutar todas las pruebas unitarias
 ./gradlew test
-
-# Ejecutar pruebas de una variante específica
-./gradlew testDebugUnitTest
-./gradlew testReleaseUnitTest
-
-# Ver reportes de pruebas
-# Los reportes se generan en: app/build/reports/tests/
 ```
 
 ### Cobertura Actual
@@ -292,66 +283,14 @@ Las pruebas se organizan en el directorio `src/test/`:
 
 ### Descripción
 
-heyPudú utiliza **NewsAPI** para enriquecer el feed de usuarios con contenido informativo relevante. Esta integración permite mostrar artículos de noticias contextuales que complementan el contenido de audio de la comunidad.
+heyPudú utiliza **NewsAPI** para enriquecer el feed de usuarios con contenido informativo relevante. Esta integración permite mostrar artículos de noticias contextuales que complementan el contenido de audio de la comunidad. Para tener una UI congruente es que las noticias son mostradas como tarjetas, con un botón de "Leer más" que redirige al navegador del dispositivo.
 
 ### Configuración
 
 **Endpoint Base**: `https://newsapi.org/`
 
-**Clave API**: Se configura en `local.properties` (no se incluye en el repositorio por seguridad)
-
-```properties
-news_api_key=TU_CLAVE_AQUI
-```
-
-### Características Principales
-
-- Búsqueda de artículos por palabras clave
-- Filtrado por país, idioma y categoría
-- Ordenamiento por relevancia, popularidad o fecha
-- Soporte para múltiples idiomas
-- Actualización de feeds en tiempo real
-- Caché local para reducir llamadas a API
-
-### Endpoints Utilizados
-
-**Top Headlines** - Noticias principales por categoría
-```
-GET /v2/top-headlines
-Parámetros: country, category, language
-```
-
-**Everything (Búsqueda Avanzada)** - Búsqueda completa en historial de artículos
-```
-GET /v2/everything
-Parámetros: q, from, to, sortBy, language, searchIn
-```
-
-### Modelos de Datos
-
-**Article**
-- `title`: Título del artículo
-- `description`: Resumen breve del contenido
-- `url`: Enlace al artículo completo
-- `urlToImage`: URL de la imagen del artículo
-- `publishedAt`: Fecha de publicación
-- `source`: Información de la fuente de noticias
-
-**NewsResponse**
-- `status`: Estado de la respuesta (ok/error)
-- `articles`: Lista de artículos encontrados
-- `totalResults`: Total de artículos disponibles para la búsqueda
-
-### Integración en la UI
-
-Los artículos de NewsAPI se muestran en el feed principal intercalados estratégicamente con las publicaciones de audio de usuarios, proporcionando variedad de contenido y contexto informativo.
-
-### Limitaciones y Consideraciones
-
 - Plan gratuito limitado a 100 solicitudes por día
-- Las imágenes del artículo pueden no estar disponibles en todos los casos
 - Algunas fuentes pueden tener restricciones de acceso
-- Se implementa caché local para optimizar llamadas a API
 
 ---
 
@@ -361,8 +300,9 @@ Este proyecto es de propiedad privada.
 
 ## Información de Versión
 
-### Versión 0.1 (Actual)
-- Lanzamiento inicial
+### Versión 0.2 (Actual)
+- Lanzamiento de nueva version con algunos cambios
+- APK disponible, firmada
 - Funcionalidad principal de compartir audio
 - Sistema de autenticación de usuario
 - Implementación de características sociales
@@ -370,6 +310,10 @@ Este proyecto es de propiedad privada.
 - Integración con NewsAPI
 - Suite de pruebas unitarias con JUnit y Truth
 
+- App firmada en Android Studio
+<img width="1600" height="900" alt="Captura de pantalla_20251207_204510" src="https://github.com/user-attachments/assets/8fa43ca1-f403-416e-a1e1-a19594dd63a7" />
+
 ---
 
 Primera versión del README: Noviembre 2025
+Segunda version del README: Diciembre 2025

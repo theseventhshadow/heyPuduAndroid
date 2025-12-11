@@ -10,11 +10,14 @@ import com.heypudu.heypudu.navigation.AppRoutes
 import com.heypudu.heypudu.features.mainscreen.ui.MainScreen
 import com.heypudu.heypudu.features.news.ui.NewsScreen
 import com.heypudu.heypudu.features.profile.ui.ProfileScreen
+import com.heypudu.heypudu.features.audioplayer.ui.AudioPlayerScreen
+import com.heypudu.heypudu.data.Post
 
 object MainRoutes {
     const val MAIN = "main_screen"
     const val NEWS = "news_screen"
     const val PROFILE = "profile_view"
+    const val AUDIO_PLAYER = "audio_player"
 }
 
 fun NavGraphBuilder.mainNavGraph(navController: NavHostController) {
@@ -38,6 +41,18 @@ fun NavGraphBuilder.mainNavGraph(navController: NavHostController) {
                 navController = navController,
                 onGoToEdit = { navController.navigate(MainRoutes.PROFILE + "?userId=$userId") }
             )
+        }
+        composable(
+            route = MainRoutes.AUDIO_PLAYER + "?postId={postId}",
+            arguments = listOf(
+                navArgument("postId") {
+                    type = NavType.StringType
+                    nullable = true
+                }
+            )
+        ) { navBackStackEntry ->
+            val postId = navBackStackEntry.arguments?.getString("postId")
+            AudioPlayerScreen(postId = postId, navController = navController)
         }
     }
 

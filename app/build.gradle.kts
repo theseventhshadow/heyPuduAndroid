@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.google.gms.google.services)
+    alias(libs.plugins.kotlin.serialization)
     id("jacoco")
 }
 
@@ -94,6 +95,9 @@ dependencies {
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation(libs.okhttp)
     implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
+
+    // Serialization
+    implementation(libs.kotlinx.serialization.json)
 
     // Unit Test Dependencies - Only JUnit and Truth
     testImplementation(libs.truth)

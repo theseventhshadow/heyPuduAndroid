@@ -12,6 +12,7 @@ import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import android.content.Context
 import com.heypudu.heypudu.utils.UploadStateManager
+import kotlinx.serialization.Serializable
 
 class UserRepository(
     private val auth: FirebaseAuth = FirebaseAuth.getInstance(),
@@ -280,8 +281,20 @@ class UserRepository(
         coverRef.putFile(imageUri).await()
         return@withContext coverRef.downloadUrl.await().toString()
     }
+
+    suspend fun getPostById(postId: String): Post? = withContext(Dispatchers.IO) {
+        return@withContext try {
+            val snapshot = firestore.collection("posts").document(postId).get().await()
+            val post = snapshot.toObject(Post::class.java)
+            post?.copy(documentId = snapshot.id)
+        } catch (e: Exception) {
+            android.util.Log.e("UserRepository", "Error al obtener post: ${e.message}")
+            null
+        }
+    }
 }
 
+@Serializable
 data class Post(
     val documentId: String? = null,
     val authorId: String? = null,
@@ -296,6 +309,7 @@ data class Post(
     val playCount: Int? = null // contador de reproducciones
 )
 
+@Serializable
 data class Comment(
     val commentId: String? = null,
     val authorId: String? = null,

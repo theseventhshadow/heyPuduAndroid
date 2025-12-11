@@ -55,6 +55,7 @@ fun PostCard(
     post: Post,
     modifier: Modifier = Modifier,
     onNavigateToProfile: (String) -> Unit = {},
+    onNavigateToAudioPlayer: ((Post) -> Unit)? = null,
     setCurrentPlayingPost: ((Post) -> Unit)? = null,
     viewModel: com.heypudu.heypudu.features.mainscreen.viewmodel.MainScreenViewModel? = null // Nuevo parámetro opcional
 ) {
@@ -152,6 +153,9 @@ fun PostCard(
         modifier = modifier
             .fillMaxWidth()
             .padding(4.dp)
+            .clickable {
+                onNavigateToAudioPlayer?.invoke(post)
+            }
     ) {
         Row(
             modifier = Modifier

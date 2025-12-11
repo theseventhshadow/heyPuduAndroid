@@ -183,6 +183,9 @@ fun ProfileScreen(
                                         post = post,
                                         onNavigateToProfile = { authorId ->
                                             navController.navigate("profile_graph/profile_view?userId=$authorId")
+                                        },
+                                        onNavigateToAudioPlayer = { post ->
+                                            navController.navigate("audio_player?postId=${post.documentId}")
                                         }
                                     )
                                 }
@@ -202,6 +205,9 @@ fun ProfileScreen(
                                         post = post,
                                         onNavigateToProfile = { authorId ->
                                             navController.navigate("profile_graph/profile_view?userId=$authorId")
+                                        },
+                                        onNavigateToAudioPlayer = { post ->
+                                            navController.navigate("audio_player?postId=${post.documentId}")
                                         }
                                     )
                                 }

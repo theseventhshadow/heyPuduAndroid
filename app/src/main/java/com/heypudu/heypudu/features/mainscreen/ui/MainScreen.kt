@@ -164,6 +164,9 @@ fun MainScreen(navController: NavHostController) {
                                 onNavigateToProfile = { authorId ->
                                     navController.navigate("profile_view?userId=$authorId")
                                 },
+                                onNavigateToAudioPlayer = { post ->
+                                    navController.navigate("audio_player?postId=${post.documentId}")
+                                },
                                 setCurrentPlayingPost = { viewModel.setCurrentPlayingPost(it) },
                                 viewModel = viewModel
                             )
